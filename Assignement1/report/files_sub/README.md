@@ -10,7 +10,7 @@ Bash scripts were written to launch all the required runs and save them in their
 All runs were submitted on the dssc queue and requested node 1 qith 48 cores, in order to utiise GPU nodes at all times.
 The script loaded the module  `openmpi/4.0.3/gnu/9.3.0` and ran the following bash command :
 
-/usr/bin/time mpirun  --mca btl '^openib' -np ${procs} mpi_pi.x  ${N_MOVES} >out.${procs}
+`/usr/bin/time mpirun  --mca btl '^openib' -np ${procs} mpi_pi.x  ${N_MOVES} >out.${procs}`
 
 where ${N_MOVES} was given and ${procs} was modified in a loop.
 Data was collected from the folders and formatted by means of bash scripts.
