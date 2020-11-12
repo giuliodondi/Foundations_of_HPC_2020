@@ -1,5 +1,4 @@
-"#header line: GPU processors,avg,error_bar,run1,run2,run3,... runN",,,,,
-,,,,,
+GPU processors,avg,error_bar,run1,run1,run3
 1,2631.6,1.76,2633.55,2630.03,2631.21
 12,2701.43,1.535,2701.19,2703.08,2700.01
 24,2794.57,5.88,2797.42,2787.27,2799.03
