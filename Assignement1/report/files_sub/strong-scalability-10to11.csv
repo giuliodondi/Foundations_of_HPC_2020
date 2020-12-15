@@ -1,4 +1,4 @@
-GPU processors,avg,error_bar,run1,run1,run3
+#header line: GPU processors,avg,error_bar,run1,run2,run3
 1,2629.82,0.3,2630.17,2629.57,2629.72
 4,660.79,1.88,660.4,659.11,662.87
 8,330.86,0.28,330.62,330.79,331.18

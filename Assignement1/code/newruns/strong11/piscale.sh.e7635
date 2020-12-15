@@ -1,0 +1,87 @@
+loading dependency gnu/9.3.0
+loading dependency numactl/2.0.13
+loading dependency hwloc/2.2.0
+2623.35user 0.07system 43:43.68elapsed 99%CPU (0avgtext+0avgdata 1404maxresident)k
+0inputs+8outputs (0major+69minor)pagefaults 0swaps
+2630.98user 2.79system 43:50.17elapsed 100%CPU (0avgtext+0avgdata 123736maxresident)k
+0inputs+16648outputs (9major+33040minor)pagefaults 0swaps
+2638.67user 3.08system 11:00.40elapsed 400%CPU (0avgtext+0avgdata 124212maxresident)k
+0inputs+16648outputs (9major+120770minor)pagefaults 0swaps
+2643.10user 3.73system 5:30.62elapsed 800%CPU (0avgtext+0avgdata 125052maxresident)k
+0inputs+16648outputs (9major+238105minor)pagefaults 0swaps
+2645.21user 3.03system 3:40.81elapsed 1199%CPU (0avgtext+0avgdata 125676maxresident)k
+0inputs+16648outputs (9major+356859minor)pagefaults 0swaps
+2685.88user 5.84system 2:48.56elapsed 1596%CPU (0avgtext+0avgdata 126220maxresident)k
+0inputs+16648outputs (9major+476957minor)pagefaults 0swaps
+2720.52user 6.82system 2:16.69elapsed 1995%CPU (0avgtext+0avgdata 126868maxresident)k
+0inputs+16648outputs (9major+598117minor)pagefaults 0swaps
+2907.58user 6.52system 2:04.57elapsed 2339%CPU (0avgtext+0avgdata 127496maxresident)k
+0inputs+16648outputs (9major+720095minor)pagefaults 0swaps
+2980.92user 9.25system 1:47.42elapsed 2783%CPU (0avgtext+0avgdata 128164maxresident)k
+0inputs+16648outputs (9major+843274minor)pagefaults 0swaps
+3069.75user 11.13system 1:37.11elapsed 3172%CPU (0avgtext+0avgdata 128736maxresident)k
+0inputs+16664outputs (9major+967879minor)pagefaults 0swaps
+3105.49user 13.81system 1:27.23elapsed 3575%CPU (0avgtext+0avgdata 129360maxresident)k
+0inputs+16664outputs (9major+1093606minor)pagefaults 0swaps
+3124.74user 16.39system 1:20.10elapsed 3921%CPU (0avgtext+0avgdata 130044maxresident)k
+0inputs+16664outputs (9major+1220110minor)pagefaults 0swaps
+3134.92user 18.71system 1:12.46elapsed 4351%CPU (0avgtext+0avgdata 130676maxresident)k
+0inputs+16664outputs (9major+1349049minor)pagefaults 0swaps
+3201.78user 21.42system 1:08.34elapsed 4716%CPU (0avgtext+0avgdata 131336maxresident)k
+0inputs+16664outputs (9major+1477243minor)pagefaults 0swaps
+2625.42user 0.00system 43:45.66elapsed 99%CPU (0avgtext+0avgdata 1420maxresident)k
+0inputs+8outputs (0major+70minor)pagefaults 0swaps
+2629.10user 0.16system 43:49.57elapsed 99%CPU (0avgtext+0avgdata 123036maxresident)k
+0inputs+16648outputs (9major+33071minor)pagefaults 0swaps
+2636.40user 3.09system 10:59.11elapsed 400%CPU (0avgtext+0avgdata 124084maxresident)k
+0inputs+16648outputs (9major+120783minor)pagefaults 0swaps
+2643.34user 2.84system 5:30.79elapsed 799%CPU (0avgtext+0avgdata 125012maxresident)k
+0inputs+16648outputs (9major+238097minor)pagefaults 0swaps
+2662.52user 4.34system 3:42.75elapsed 1197%CPU (0avgtext+0avgdata 125680maxresident)k
+0inputs+16648outputs (9major+356885minor)pagefaults 0swaps
+2694.10user 4.65system 2:48.89elapsed 1597%CPU (0avgtext+0avgdata 126236maxresident)k
+0inputs+16648outputs (9major+477122minor)pagefaults 0swaps
+2827.74user 4.93system 2:21.88elapsed 1996%CPU (0avgtext+0avgdata 126976maxresident)k
+0inputs+16648outputs (9major+597841minor)pagefaults 0swaps
+2752.36user 6.86system 1:55.33elapsed 2392%CPU (0avgtext+0avgdata 127492maxresident)k
+0inputs+16648outputs (9major+720115minor)pagefaults 0swaps
+2960.78user 9.66system 1:47.92elapsed 2752%CPU (0avgtext+0avgdata 128044maxresident)k
+0inputs+16648outputs (9major+843566minor)pagefaults 0swaps
+3032.34user 10.75system 1:35.65elapsed 3181%CPU (0avgtext+0avgdata 128756maxresident)k
+0inputs+16664outputs (9major+967329minor)pagefaults 0swaps
+3064.73user 13.72system 1:26.23elapsed 3570%CPU (0avgtext+0avgdata 129324maxresident)k
+0inputs+16664outputs (9major+1093496minor)pagefaults 0swaps
+3182.87user 15.29system 1:20.74elapsed 3961%CPU (0avgtext+0avgdata 130076maxresident)k
+0inputs+16664outputs (9major+1220597minor)pagefaults 0swaps
+3188.65user 20.95system 1:13.90elapsed 4342%CPU (0avgtext+0avgdata 130592maxresident)k
+0inputs+16664outputs (9major+1347961minor)pagefaults 0swaps
+3361.29user 22.61system 1:15.12elapsed 4504%CPU (0avgtext+0avgdata 131192maxresident)k
+0inputs+16664outputs (9major+1477157minor)pagefaults 0swaps
+2625.33user 0.00system 43:45.58elapsed 99%CPU (0avgtext+0avgdata 1368maxresident)k
+0inputs+8outputs (0major+69minor)pagefaults 0swaps
+2630.55user 2.78system 43:49.72elapsed 100%CPU (0avgtext+0avgdata 123712maxresident)k
+0inputs+16648outputs (9major+33042minor)pagefaults 0swaps
+2649.49user 3.10system 11:02.87elapsed 400%CPU (0avgtext+0avgdata 124348maxresident)k
+0inputs+16648outputs (9major+120781minor)pagefaults 0swaps
+2647.35user 3.78system 5:31.18elapsed 800%CPU (0avgtext+0avgdata 125056maxresident)k
+0inputs+16648outputs (9major+238069minor)pagefaults 0swaps
+2675.92user 3.46system 3:45.09elapsed 1190%CPU (0avgtext+0avgdata 125616maxresident)k
+0inputs+16648outputs (9major+356859minor)pagefaults 0swaps
+2694.48user 4.34system 2:51.14elapsed 1576%CPU (0avgtext+0avgdata 126404maxresident)k
+0inputs+16648outputs (9major+476929minor)pagefaults 0swaps
+2819.91user 6.87system 2:21.72elapsed 1994%CPU (0avgtext+0avgdata 126916maxresident)k
+0inputs+16648outputs (9major+597893minor)pagefaults 0swaps
+2911.47user 8.15system 2:04.66elapsed 2342%CPU (0avgtext+0avgdata 127456maxresident)k
+0inputs+16648outputs (9major+720186minor)pagefaults 0swaps
+3042.07user 9.73system 1:52.40elapsed 2714%CPU (0avgtext+0avgdata 128028maxresident)k
+0inputs+16648outputs (9major+843377minor)pagefaults 0swaps
+3202.87user 11.38system 1:45.87elapsed 3035%CPU (0avgtext+0avgdata 128788maxresident)k
+0inputs+16664outputs (9major+967902minor)pagefaults 0swaps
+3060.30user 13.22system 1:26.06elapsed 3571%CPU (0avgtext+0avgdata 129360maxresident)k
+0inputs+16664outputs (9major+1093626minor)pagefaults 0swaps
+3103.94user 15.91system 1:19.36elapsed 3931%CPU (0avgtext+0avgdata 129984maxresident)k
+0inputs+16664outputs (9major+1220324minor)pagefaults 0swaps
+3163.32user 18.87system 1:13.29elapsed 4341%CPU (0avgtext+0avgdata 130568maxresident)k
+0inputs+16664outputs (9major+1347709minor)pagefaults 0swaps
+3147.28user 21.89system 1:07.03elapsed 4727%CPU (0avgtext+0avgdata 131252maxresident)k
+0inputs+16664outputs (9major+1477515minor)pagefaults 0swaps

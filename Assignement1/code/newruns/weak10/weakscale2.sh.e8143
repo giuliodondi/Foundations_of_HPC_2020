@@ -1,0 +1,5 @@
+loading dependency gnu/9.3.0
+loading dependency numactl/2.0.13
+loading dependency hwloc/2.2.0
+15310.53user 18.98system 5:49.08elapsed 4391%CPU (0avgtext+0avgdata 130492maxresident)k
+0inputs+16664outputs (9major+1348414minor)pagefaults 0swaps

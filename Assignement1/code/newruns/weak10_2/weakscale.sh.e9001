@@ -1,0 +1,262 @@
+loading dependency gnu/9.3.0
+loading dependency numactl/2.0.13
+loading dependency hwloc/2.2.0
+262.70user 0.13system 4:22.96elapsed 99%CPU (0avgtext+0avgdata 123404maxresident)k
+0inputs+16648outputs (9major+33039minor)pagefaults 0swaps
+1059.15user 1.56system 4:25.35elapsed 399%CPU (0avgtext+0avgdata 124188maxresident)k
+0inputs+16648outputs (9major+120479minor)pagefaults 0swaps
+2114.84user 2.07system 4:24.69elapsed 799%CPU (0avgtext+0avgdata 125004maxresident)k
+0inputs+16648outputs (9major+238047minor)pagefaults 0swaps
+3173.84user 5.09system 4:24.75elapsed 1200%CPU (0avgtext+0avgdata 125616maxresident)k
+0inputs+16648outputs (9major+356807minor)pagefaults 0swaps
+4372.03user 5.04system 4:34.29elapsed 1595%CPU (0avgtext+0avgdata 126308maxresident)k
+0inputs+16648outputs (9major+476933minor)pagefaults 0swaps
+5456.00user 8.74system 4:33.27elapsed 1999%CPU (0avgtext+0avgdata 126912maxresident)k
+0inputs+16648outputs (9major+597995minor)pagefaults 0swaps
+6693.51user 7.99system 4:45.26elapsed 2349%CPU (0avgtext+0avgdata 127508maxresident)k
+0inputs+16648outputs (9major+720232minor)pagefaults 0swaps
+8366.73user 9.36system 5:00.20elapsed 2790%CPU (0avgtext+0avgdata 128020maxresident)k
+0inputs+16832outputs (9major+842984minor)pagefaults 0swaps
+9890.13user 13.91system 5:37.19elapsed 2937%CPU (0avgtext+0avgdata 128680maxresident)k
+0inputs+16672outputs (9major+967913minor)pagefaults 0swaps
+11107.51user 16.92system 5:11.68elapsed 3569%CPU (0avgtext+0avgdata 129324maxresident)k
+0inputs+16664outputs (9major+1093523minor)pagefaults 0swaps
+17340.58user 22.15system 7:29.16elapsed 3865%CPU (0avgtext+0avgdata 129960maxresident)k
+0inputs+16672outputs (9major+1220739minor)pagefaults 0swaps
+14206.48user 22.17system 5:25.05elapsed 4377%CPU (0avgtext+0avgdata 130692maxresident)k
+0inputs+16664outputs (9major+1347360minor)pagefaults 0swaps
+[ct1pg-gnode001:31889:0:31889]       ud_ep.c:255  Fatal: UD endpoint 0x1516580053a0 to <no debug data>: unhandled timeout error
+==== backtrace (tid:  31889) ====
+ 0 0x000000000004ee05 ucs_debug_print_backtrace()  ???:0
+ 1 0x0000000000046dde uct_ud_grh_get_dgid()  ???:0
+ 2 0x0000000000048a8e ucs_callbackq_put_id_noflag()  ???:0
+ 3 0x000000000002300a ucp_worker_progress()  ???:0
+ 4 0x0000000000005433 mca_pml_ucx_send()  ???:0
+ 5 0x000000000008ae38 PMPI_Ssend()  ???:0
+ 6 0x0000000000400d6e main()  ???:0
+ 7 0x0000000000022505 __libc_start_main()  ???:0
+ 8 0x0000000000400a19 _start()  ???:0
+=================================
+[ct1pg-gnode001:31889] *** Process received signal ***
+[ct1pg-gnode001:31889] Signal: Aborted (6)
+[ct1pg-gnode001:31889] Signal code:  (-6)
+[ct1pg-gnode001:31889] [ 0] /lib64/libpthread.so.0(+0xf5f0)[0x15167793b5f0]
+[ct1pg-gnode001:31889] [ 1] /lib64/libc.so.6(gsignal+0x37)[0x151677594337]
+[ct1pg-gnode001:31889] [ 2] /lib64/libc.so.6(abort+0x148)[0x151677595a28]
+[ct1pg-gnode001:31889] [ 3] /lib64/libucs.so.0(ucs_fatal_error_message+0x55)[0x1516668797f5]
+[ct1pg-gnode001:31889] [ 4] /lib64/libucs.so.0(+0x4d995)[0x151666879995]
+[ct1pg-gnode001:31889] [ 5] /lib64/ucx/libuct_ib.so.0(+0x46dde)[0x15166c139dde]
+[ct1pg-gnode001:31889] [ 6] /lib64/libucs.so.0(+0x48a8e)[0x151666874a8e]
+[ct1pg-gnode001:31889] [ 7] /lib64/libucp.so.0(ucp_worker_progress+0x5a)[0x151666ffb00a]
+[ct1pg-gnode001:31889] [ 8] /opt/area/shared/programs/x86_64/openmpi/4.0.3/gnu/9.3.0/lib/openmpi/mca_pml_ucx.so(mca_pml_ucx_send+0x2e3)[0x1516677cd433]
+[ct1pg-gnode001:31889] [ 9] /opt/area/shared/programs/x86_64/openmpi/4.0.3/gnu/9.3.0/lib/libmpi.so.40(PMPI_Ssend+0x118)[0x151677bd2e38]
+[ct1pg-gnode001:31889] [10] mpi_pi.x[0x400d6e]
+[ct1pg-gnode001:31889] [11] /lib64/libc.so.6(__libc_start_main+0xf5)[0x151677580505]
+[ct1pg-gnode001:31889] [12] mpi_pi.x[0x400a19]
+[ct1pg-gnode001:31889] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 31 with PID 0 on node ct1pg-gnode001 exited on signal 6 (Aborted).
+--------------------------------------------------------------------------
+311.67user 0.67system 5:14.27elapsed 99%CPU (0avgtext+0avgdata 145664maxresident)k
+0inputs+16680outputs (9major+39283minor)pagefaults 0swaps
+263.18user 0.38system 4:23.28elapsed 100%CPU (0avgtext+0avgdata 123372maxresident)k
+0inputs+16648outputs (9major+33029minor)pagefaults 0swaps
+1054.30user 1.56system 4:23.74elapsed 400%CPU (0avgtext+0avgdata 124408maxresident)k
+0inputs+16648outputs (9major+120497minor)pagefaults 0swaps
+2117.32user 3.09system 4:24.97elapsed 800%CPU (0avgtext+0avgdata 124944maxresident)k
+0inputs+16648outputs (9major+238068minor)pagefaults 0swaps
+3178.42user 3.95system 4:25.40elapsed 1199%CPU (0avgtext+0avgdata 125660maxresident)k
+0inputs+16648outputs (9major+356879minor)pagefaults 0swaps
+4361.82user 5.82system 4:33.01elapsed 1599%CPU (0avgtext+0avgdata 126320maxresident)k
+0inputs+16648outputs (9major+478371minor)pagefaults 0swaps
+5469.15user 7.36system 4:34.43elapsed 1995%CPU (0avgtext+0avgdata 126932maxresident)k
+0inputs+16648outputs (9major+598160minor)pagefaults 0swaps
+6750.99user 9.45system 4:45.64elapsed 2366%CPU (0avgtext+0avgdata 127496maxresident)k
+0inputs+16648outputs (9major+720672minor)pagefaults 0swaps
+8371.24user 9.80system 5:02.34elapsed 2771%CPU (0avgtext+0avgdata 128040maxresident)k
+0inputs+16648outputs (9major+843149minor)pagefaults 0swaps
+9897.14user 11.33system 5:14.28elapsed 3152%CPU (0avgtext+0avgdata 128704maxresident)k
+0inputs+16664outputs (9major+967937minor)pagefaults 0swaps
+10972.02user 15.81system 5:06.50elapsed 3584%CPU (0avgtext+0avgdata 129392maxresident)k
+0inputs+16664outputs (9major+1093668minor)pagefaults 0swaps
+12544.54user 20.70system 5:15.39elapsed 3983%CPU (0avgtext+0avgdata 130104maxresident)k
+0inputs+16664outputs (9major+1220060minor)pagefaults 0swaps
+14445.48user 21.91system 5:32.55elapsed 4350%CPU (0avgtext+0avgdata 130660maxresident)k
+0inputs+16664outputs (9major+1350000minor)pagefaults 0swaps
+[ct1pg-gnode001:37802:0:37802]       ud_ep.c:255  Fatal: UD endpoint 0x151360000b60 to <no debug data>: unhandled timeout error
+==== backtrace (tid:  37802) ====
+ 0 0x000000000004ee05 ucs_debug_print_backtrace()  ???:0
+ 1 0x0000000000046dde uct_ud_grh_get_dgid()  ???:0
+ 2 0x0000000000048a8e ucs_callbackq_put_id_noflag()  ???:0
+ 3 0x000000000002300a ucp_worker_progress()  ???:0
+ 4 0x0000000000004a10 mca_pml_ucx_recv()  ???:0
+ 5 0x0000000000084905 PMPI_Recv()  ???:0
+ 6 0x0000000000400ca4 main()  ???:0
+ 7 0x0000000000022505 __libc_start_main()  ???:0
+ 8 0x0000000000400a19 _start()  ???:0
+=================================
+[ct1pg-gnode001:37802] *** Process received signal ***
+[ct1pg-gnode001:37802] Signal: Aborted (6)
+[ct1pg-gnode001:37802] Signal code:  (-6)
+[ct1pg-gnode001:37802] [ 0] /lib64/libpthread.so.0(+0xf5f0)[0x1513814ef5f0]
+[ct1pg-gnode001:37802] [ 1] /lib64/libc.so.6(gsignal+0x37)[0x151381148337]
+[ct1pg-gnode001:37802] [ 2] /lib64/libc.so.6(abort+0x148)[0x151381149a28]
+[ct1pg-gnode001:37802] [ 3] /lib64/libucs.so.0(ucs_fatal_error_message+0x55)[0x1513745bc7f5]
+[ct1pg-gnode001:37802] [ 4] /lib64/libucs.so.0(+0x4d995)[0x1513745bc995]
+[ct1pg-gnode001:37802] [ 5] /lib64/ucx/libuct_ib.so.0(+0x46dde)[0x15136fddedde]
+[ct1pg-gnode001:37802] [ 6] /lib64/libucs.so.0(+0x48a8e)[0x1513745b7a8e]
+[ct1pg-gnode001:37802] [ 7] /lib64/libucp.so.0(ucp_worker_progress+0x5a)[0x151374d3e00a]
+[ct1pg-gnode001:37802] [ 8] /opt/area/shared/programs/x86_64/openmpi/4.0.3/gnu/9.3.0/lib/openmpi/mca_pml_ucx.so(mca_pml_ucx_recv+0x110)[0x15137558ba10]
+[ct1pg-gnode001:37802] [ 9] /opt/area/shared/programs/x86_64/openmpi/4.0.3/gnu/9.3.0/lib/libmpi.so.40(PMPI_Recv+0xf5)[0x151381780905]
+[ct1pg-gnode001:37802] [10] mpi_pi.x[0x400ca4]
+[ct1pg-gnode001:37802] [11] /lib64/libc.so.6(__libc_start_main+0xf5)[0x151381134505]
+[ct1pg-gnode001:37802] [12] mpi_pi.x[0x400a19]
+[ct1pg-gnode001:37802] *** End of error message ***
+[ct1pg-gnode001:37864:0:37864]       ud_ep.c:255  Fatal: UD endpoint 0x1553cc011e00 to <no debug data>: unhandled timeout error
+==== backtrace (tid:  37864) ====
+ 0 0x000000000004ee05 ucs_debug_print_backtrace()  ???:0
+ 1 0x0000000000046dde uct_ud_grh_get_dgid()  ???:0
+ 2 0x0000000000048a8e ucs_callbackq_put_id_noflag()  ???:0
+ 3 0x000000000002300a ucp_worker_progress()  ???:0
+ 4 0x0000000000005433 mca_pml_ucx_send()  ???:0
+ 5 0x000000000008ae38 PMPI_Ssend()  ???:0
+ 6 0x0000000000400d6e main()  ???:0
+ 7 0x0000000000022505 __libc_start_main()  ???:0
+ 8 0x0000000000400a19 _start()  ???:0
+=================================
+[ct1pg-gnode001:37864] *** Process received signal ***
+[ct1pg-gnode001:37864] Signal: Aborted (6)
+[ct1pg-gnode001:37864] Signal code:  (-6)
+[ct1pg-gnode001:37864] [ 0] /lib64/libpthread.so.0(+0xf5f0)[0x1553ec3d85f0]
+[ct1pg-gnode001:37864] [ 1] /lib64/libc.so.6(gsignal+0x37)[0x1553ec031337]
+[ct1pg-gnode001:37864] [ 2] /lib64/libc.so.6(abort+0x148)[0x1553ec032a28]
+[ct1pg-gnode001:37864] [ 3] /lib64/libucs.so.0(ucs_fatal_error_message+0x55)[0x1553db4347f5]
+[ct1pg-gnode001:37864] [ 4] /lib64/libucs.so.0(+0x4d995)[0x1553db434995]
+[ct1pg-gnode001:37864] [ 5] /lib64/ucx/libuct_ib.so.0(+0x46dde)[0x1553dada4dde]
+[ct1pg-gnode001:37864] [ 6] /lib64/libucs.so.0(+0x48a8e)[0x1553db42fa8e]
+[ct1pg-gnode001:37864] [ 7] /lib64/libucp.so.0(ucp_worker_progress+0x5a)[0x1553dbbb600a]
+[ct1pg-gnode001:37864] [ 8] /opt/area/shared/programs/x86_64/openmpi/4.0.3/gnu/9.3.0/lib/openmpi/mca_pml_ucx.so(mca_pml_ucx_send+0x2e3)[0x1553e0362433]
+[ct1pg-gnode001:37864] [ 9] /opt/area/shared/programs/x86_64/openmpi/4.0.3/gnu/9.3.0/lib/libmpi.so.40(PMPI_Ssend+0x118)[0x1553ec66fe38]
+[ct1pg-gnode001:37864] [10] mpi_pi.x[0x400d6e]
+[ct1pg-gnode001:37864] [11] /lib64/libc.so.6(__libc_start_main+0xf5)[0x1553ec01d505]
+[ct1pg-gnode001:37864] [12] mpi_pi.x[0x400a19]
+[ct1pg-gnode001:37864] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+[ct1pg-gnode001:37826] *** An error occurred in MPI_Ssend
+[ct1pg-gnode001:37826] *** reported by process [1832517633,15]
+[ct1pg-gnode001:37826] *** on communicator MPI_COMM_WORLD
+[ct1pg-gnode001:37826] *** MPI_ERR_OTHER: known error not in list
+[ct1pg-gnode001:37826] *** MPI_ERRORS_ARE_FATAL (processes in this communicator will now abort,
+[ct1pg-gnode001:37826] ***    and potentially your MPI job)
+[ct1pg-gnode001:37794] PMIX ERROR: UNREACHABLE in file server/pmix_server.c at line 2193
+[ct1pg-gnode001:37826] pml_ucx.c:802  Error: ucx send failed: Shared memory error
+--------------------------------------------------------------------------
+mpirun noticed that process rank 25 with PID 0 on node ct1pg-gnode001 exited on signal 6 (Aborted).
+--------------------------------------------------------------------------
+302.80user 0.55system 5:05.26elapsed 99%CPU (0avgtext+0avgdata 133248maxresident)k
+0inputs+16680outputs (9major+38522minor)pagefaults 0swaps
+262.88user 0.14system 4:23.15elapsed 99%CPU (0avgtext+0avgdata 123188maxresident)k
+0inputs+16648outputs (9major+33038minor)pagefaults 0swaps
+1056.93user 1.32system 4:24.46elapsed 400%CPU (0avgtext+0avgdata 124084maxresident)k
+0inputs+16648outputs (9major+120476minor)pagefaults 0swaps
+2114.29user 1.80system 4:24.67elapsed 799%CPU (0avgtext+0avgdata 124956maxresident)k
+0inputs+16648outputs (9major+238035minor)pagefaults 0swaps
+3185.65user 4.22system 4:25.83elapsed 1199%CPU (0avgtext+0avgdata 125580maxresident)k
+0inputs+16648outputs (9major+356889minor)pagefaults 0swaps
+4293.44user 4.70system 4:29.19elapsed 1596%CPU (0avgtext+0avgdata 126280maxresident)k
+0inputs+16648outputs (9major+477002minor)pagefaults 0swaps
+5748.18user 8.60system 4:47.83elapsed 2000%CPU (0avgtext+0avgdata 126860maxresident)k
+0inputs+16648outputs (9major+597973minor)pagefaults 0swaps
+6578.89user 6.35system 4:34.75elapsed 2396%CPU (0avgtext+0avgdata 127608maxresident)k
+0inputs+16648outputs (9major+720140minor)pagefaults 0swaps
+8329.31user 11.64system 5:01.83elapsed 2763%CPU (0avgtext+0avgdata 128212maxresident)k
+0inputs+16648outputs (9major+843510minor)pagefaults 0swaps
+9839.57user 14.89system 5:12.39elapsed 3154%CPU (0avgtext+0avgdata 128636maxresident)k
+0inputs+16672outputs (9major+967876minor)pagefaults 0swaps
+11038.09user 15.47system 5:08.17elapsed 3586%CPU (0avgtext+0avgdata 129316maxresident)k
+0inputs+16664outputs (9major+1093474minor)pagefaults 0swaps
+12303.70user 20.77system 5:11.97elapsed 3950%CPU (0avgtext+0avgdata 129976maxresident)k
+0inputs+16672outputs (9major+1220508minor)pagefaults 0swaps
+[ct1pg-gnode001:43141:0:43141]       ud_ep.c:255  Fatal: UD endpoint 0x1548cc006060 to <no debug data>: unhandled timeout error
+==== backtrace (tid:  43141) ====
+ 0 0x000000000004ee05 ucs_debug_print_backtrace()  ???:0
+ 1 0x0000000000046dde uct_ud_grh_get_dgid()  ???:0
+ 2 0x0000000000048a8e ucs_callbackq_put_id_noflag()  ???:0
+ 3 0x000000000002300a ucp_worker_progress()  ???:0
+ 4 0x0000000000005433 mca_pml_ucx_send()  ???:0
+ 5 0x000000000008ae38 PMPI_Ssend()  ???:0
+ 6 0x0000000000400d6e main()  ???:0
+ 7 0x0000000000022505 __libc_start_main()  ???:0
+ 8 0x0000000000400a19 _start()  ???:0
+=================================
+[ct1pg-gnode001:43141] *** Process received signal ***
+[ct1pg-gnode001:43141] Signal: Aborted (6)
+[ct1pg-gnode001:43141] Signal code:  (-6)
+[ct1pg-gnode001:43141] [ 0] /lib64/libpthread.so.0(+0xf5f0)[0x1548ee61c5f0]
+[ct1pg-gnode001:43141] [ 1] /lib64/libc.so.6(gsignal+0x37)[0x1548ee275337]
+[ct1pg-gnode001:43141] [ 2] /lib64/libc.so.6(abort+0x148)[0x1548ee276a28]
+[ct1pg-gnode001:43141] [ 3] /lib64/libucs.so.0(ucs_fatal_error_message+0x55)[0x1548e15ca7f5]
+[ct1pg-gnode001:43141] [ 4] /lib64/libucs.so.0(+0x4d995)[0x1548e15ca995]
+[ct1pg-gnode001:43141] [ 5] /lib64/ucx/libuct_ib.so.0(+0x46dde)[0x1548e0f3adde]
+[ct1pg-gnode001:43141] [ 6] /lib64/libucs.so.0(+0x48a8e)[0x1548e15c5a8e]
+[ct1pg-gnode001:43141] [ 7] /lib64/libucp.so.0(ucp_worker_progress+0x5a)[0x1548e1d4c00a]
+[ct1pg-gnode001:43141] [ 8] /opt/area/shared/programs/x86_64/openmpi/4.0.3/gnu/9.3.0/lib/openmpi/mca_pml_ucx.so(mca_pml_ucx_send+0x2e3)[0x1548e259a433]
+[ct1pg-gnode001:43141] [ 9] /opt/area/shared/programs/x86_64/openmpi/4.0.3/gnu/9.3.0/lib/libmpi.so.40(PMPI_Ssend+0x118)[0x1548ee8b3e38]
+[ct1pg-gnode001:43141] [10] mpi_pi.x[0x400d6e]
+[ct1pg-gnode001:43141] [11] /lib64/libc.so.6(__libc_start_main+0xf5)[0x1548ee261505]
+[ct1pg-gnode001:43141] [12] mpi_pi.x[0x400a19]
+[ct1pg-gnode001:43141] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 19 with PID 0 on node ct1pg-gnode001 exited on signal 6 (Aborted).
+--------------------------------------------------------------------------
+319.64user 0.72system 5:21.97elapsed 99%CPU (0avgtext+0avgdata 186856maxresident)k
+0inputs+16672outputs (9major+39253minor)pagefaults 0swaps
+[ct1pg-gnode001:43876:0:43876]       ud_ep.c:255  Fatal: UD endpoint 0x1494e8003660 to <no debug data>: unhandled timeout error
+==== backtrace (tid:  43876) ====
+ 0 0x000000000004ee05 ucs_debug_print_backtrace()  ???:0
+ 1 0x0000000000046dde uct_ud_grh_get_dgid()  ???:0
+ 2 0x0000000000048a8e ucs_callbackq_put_id_noflag()  ???:0
+ 3 0x000000000002300a ucp_worker_progress()  ???:0
+ 4 0x0000000000005433 mca_pml_ucx_send()  ???:0
+ 5 0x000000000008ae38 PMPI_Ssend()  ???:0
+ 6 0x0000000000400d6e main()  ???:0
+ 7 0x0000000000022505 __libc_start_main()  ???:0
+ 8 0x0000000000400a19 _start()  ???:0
+=================================
+[ct1pg-gnode001:43876] *** Process received signal ***
+[ct1pg-gnode001:43876] Signal: Aborted (6)
+[ct1pg-gnode001:43876] Signal code:  (-6)
+[ct1pg-gnode001:43876] [ 0] /lib64/libpthread.so.0(+0xf5f0)[0x149507cff5f0]
+[ct1pg-gnode001:43876] [ 1] /lib64/libc.so.6(gsignal+0x37)[0x149507958337]
+[ct1pg-gnode001:43876] [ 2] /lib64/libc.so.6(abort+0x148)[0x149507959a28]
+[ct1pg-gnode001:43876] [ 3] /lib64/libucs.so.0(ucs_fatal_error_message+0x55)[0x1494f6de57f5]
+[ct1pg-gnode001:43876] [ 4] /lib64/libucs.so.0(+0x4d995)[0x1494f6de5995]
+[ct1pg-gnode001:43876] [ 5] /lib64/ucx/libuct_ib.so.0(+0x46dde)[0x1494f6755dde]
+[ct1pg-gnode001:43876] [ 6] /lib64/libucs.so.0(+0x48a8e)[0x1494f6de0a8e]
+[ct1pg-gnode001:43876] [ 7] /lib64/libucp.so.0(ucp_worker_progress+0x5a)[0x1494f756700a]
+[ct1pg-gnode001:43876] [ 8] /opt/area/shared/programs/x86_64/openmpi/4.0.3/gnu/9.3.0/lib/openmpi/mca_pml_ucx.so(mca_pml_ucx_send+0x2e3)[0x1494f7bd8433]
+[ct1pg-gnode001:43876] [ 9] /opt/area/shared/programs/x86_64/openmpi/4.0.3/gnu/9.3.0/lib/libmpi.so.40(PMPI_Ssend+0x118)[0x149507f96e38]
+[ct1pg-gnode001:43876] [10] mpi_pi.x[0x400d6e]
+[ct1pg-gnode001:43876] [11] /lib64/libc.so.6(__libc_start_main+0xf5)[0x149507944505]
+[ct1pg-gnode001:43876] [12] mpi_pi.x[0x400a19]
+[ct1pg-gnode001:43876] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 43 with PID 0 on node ct1pg-gnode001 exited on signal 6 (Aborted).
+--------------------------------------------------------------------------
+304.22user 0.75system 5:07.27elapsed 99%CPU (0avgtext+0avgdata 191720maxresident)k
+0inputs+16672outputs (9major+40204minor)pagefaults 0swaps

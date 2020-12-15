@@ -1,0 +1,8 @@
+
+ # walltime on processor 1 : 302.64382883 
+
+ # walltime on processor 3 : 307.39337100 
+
+ # walltime on processor 2 : 307.38803041 
+[1604266136.997078] [ct1pg-gnode003:42952:0]       mm_posix.c:195  UCX  ERROR open(file_name=/proc/42901/fd/21 flags=0x0) failed: No such file or directory
+[1604266136.997118] [ct1pg-gnode003:42952:0]         wireup.c:114  UCX  ERROR failed to send wireup: Shared memory error
