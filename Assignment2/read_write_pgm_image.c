@@ -211,7 +211,7 @@ void * generate_gradient( int maxval, int xsize, int ysize )
   else
     // generate a gradient with 2 bytes of color depth
     {
-      sImage = (unsigned short int*)calloc( xsize*ysize, sizeof(short int) );
+      sImage = (short int*)calloc( xsize*ysize, sizeof(short int) );
       unsigned short int _maxval = swap((unsigned short int)maxval);
       int idx = 0;
       for ( int yy = 0; yy < ysize; yy++ )

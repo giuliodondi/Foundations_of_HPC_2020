@@ -1,24 +1,37 @@
+#include <kernel_t.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <kernel.h>
+#include <stdint.h>
 
 
 
-int read_params_initialise_kernel( const int argc, const char **argv , char* infile, char* outfile , kernel* k ) {
+
+int min( const int a, const int b) {
+	if (a<b) {return a;}
+	else {return b;}
+}
+
+void print_usage(char **argv) {
+	printf("Usage: %s -input input_img.pgm -kernel_type t -kernel-size s (optional) -output output_img.pgm -kernel-weight w.\n",argv[0]);
+}
+
+int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char* outfile , kernel_t* k ) {
 	
-	unsigned int kernel_type;
-	unsigned int kernel_size;
+	int kernel_type=-1;
+	int kernel_size=-1;
 	float kernel_weight = -1;
+	
+
 	
 	//switch doesn't work with strings unfortunately
 	for( int arg = 1; arg < argc; arg+=2 )  {
 		if (strcmp(argv[arg], "-input")==0 ) {
-			strcat(infile,argv[arg+1]);
+			strcpy(infile,argv[arg+1]);
 		}
 		else if (strcmp(argv[arg], "-output")==0 ) {
-			strcat(outfile,argv[arg+1]);	
+			strcpy(outfile,argv[arg+1]);	
 		}
 		else if (strcmp(argv[arg], "-kernel-type")==0 ) {
 			kernel_type = atoi(argv[arg+1]);
@@ -42,53 +55,40 @@ int read_params_initialise_kernel( const int argc, const char **argv , char* inf
 			}
 		}
 		else {
-			printf("Illegal or missing argument.\n");
-			printf("Usage: %s -input path/name1.pgm -output path/name2.pgm .\n",argv[0]);
+			printf("Illegal argument.\n");
+			print_usage(argv);
 			return -1;
 		  }
 		 
 		 
 	}
 	
-
-	
-	
-	
-	
-	//initialise the kernel
-	switch  (kernel_type) {
-		case 0:
-			average_kernel(k, kernel_size);
-			break;
-		case 1:
-			//check if the weight was given as argument
-			if (kernel_weight<0) {
-				printf("Error: weighted kernel chosen but the weight was not specified.\n");	
-				return -1;
-			}
-			else {
-				weighted_kernel(k, kernel_size, kernel_weight);
-				break;
-				
-			}
-		case 2 :
-			gaussian_kernel(k, kernel_size);
-			break;
-		default:
-			printf("Error: unknown kernel type.\n");
-			printf("Currently supported: 0 (average), 1 (weighted), 2 (gaussian).\n");
-			return -1;
-			
-	}
-	printf("Kernel initialised.\n");
-	
 	//check if file exists 
-	if( access( infile, F_OK ) == 0 ) {
-		printf("Processing file \"%s\".\n",infile); 
-	} else {
+	if( !access( infile, F_OK ) == 0 ) {
 		printf("The input file does not exists.\n");
 		return -1;
 	} 
+	
+	if (kernel_type == -1 ) {
+		printf("The kernel type was not specified.\n");	
+		print_usage(argv);
+		return -1;
+	}
+	
+	if (kernel_size == -1 ) {
+		printf("The kernel size was not specified.\n");	
+		print_usage(argv);
+		return -1;
+	}
+	
+	if (kernel_init( k, kernel_type, kernel_size, kernel_weight) == -1 ) {
+		printf("Error during kernel initialisation.\n");	
+		return -1;
+	}
+	
+	
+	
+
 	
 	return 0;
 	

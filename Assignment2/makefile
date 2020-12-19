@@ -1,16 +1,19 @@
 COMPILER = gcc
 EXE_NAME = blur.x
-FLAGS = -Wall -Wextra  -O0
+FLAGS = -Wall -Wextra  -march=native -O3
 INCLUDE = -I src/include/
 
-COMMON_OBJ = src/common/pgm_lib.o src/common/blur_common_lib.o src/common/kernel_lib.o
-SERIAL_OBJ = src/blur_serial_main.o 
+COMMON_OBJ = src/common/pgm_lib.o src/common/kernel_lib.o src/common/blur_common_lib.o 
+SERIAL_OBJ = src/blur_serial_main.o src/serial/pgm_blur_serial.o
 OPENMP_OBJ =
 MPI_OBJ =
 
 MOD= *.mod
 
 default: serial
+
+pgmtest: pgm_test.o src/common/pgm_lib.o
+	$(COMPILER) $^ -o pgmtest.x $(FLAGS) -lm
 
 serial: $(COMMON_OBJ)  $(SERIAL_OBJ)
 	$(COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
@@ -22,7 +25,7 @@ mpi: $(COMMON_OBJ) $(MPI_OBJ)
 	$(COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
 
 clean:
-	rm -rf $(SERIAL_OBJ) $(COMMON_OBJ) $(OPENMP_OBJ) $(MPI_OBJ) $(SERIAL_EXE_NAME) $(MOD)
+	rm -rf $(SERIAL_OBJ) $(COMMON_OBJ) $(OPENMP_OBJ) $(MPI_OBJ) $(EXE_NAME) $(MOD)
 	
 .PHONY: clean default
 
