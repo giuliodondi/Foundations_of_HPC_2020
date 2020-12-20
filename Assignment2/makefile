@@ -12,8 +12,6 @@ MOD= *.mod
 
 default: serial
 
-pgmtest: pgm_test.o src/common/pgm_lib.o
-	$(COMPILER) $^ -o pgmtest.x $(FLAGS) -lm
 
 serial: $(COMMON_OBJ)  $(SERIAL_OBJ)
 	$(COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
