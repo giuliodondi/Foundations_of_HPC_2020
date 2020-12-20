@@ -36,7 +36,7 @@ int main( int argc, char **argv )
 		delete_kernel(&kernel_ptr);
 		return -1;
 	}
-																			  
+	
 
 	if (read_pgm( &image , infile)== -1 ) {
 		printf("Aborting.\n");
@@ -54,14 +54,20 @@ int main( int argc, char **argv )
 	clock_t begin = clock();
     
 
-	pgm_blur_copy( &image, kernel_ptr );
-	//pgm_blur_linebuf( &image, kernel_ptr );
+	//pgm_blur_copy( &image, &kernel_ptr );
+	pgm_blur_linebuf( &image, &kernel_ptr );
 	
 	clock_t end = clock();
 	printf("Elapsed: %f seconds\n", (double)(end - begin) / CLOCKS_PER_SEC );
 
         
-    write_pgm( &image, outfile);
+   
+	if ( write_pgm( &image, outfile);== -1 ) {
+		printf("Aborting.\n");
+		clear_pgm( &image);
+		delete_kernel(&kernel_ptr);
+		return -1;
+	}
     printf("Output file \"%s\" has been written.\n",outfile);
 	
 	

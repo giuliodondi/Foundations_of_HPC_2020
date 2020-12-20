@@ -10,7 +10,7 @@
 
 
 
-void pgm_blur_copy(  pgm* input_img , kernel_t k) {
+void pgm_blur_copy(  pgm* input_img , const kernel_t* k) {
 	
 	
 	register const int xdim = input_img->width ;
@@ -19,13 +19,17 @@ void pgm_blur_copy(  pgm* input_img , kernel_t k) {
 	register const int ydim1 = input_img->height  - 1;
 
 	
-	register const int ker_s = k.size ;
-	register const int ker_hsize = ( k.size - 1)/2 ;
-	double* kernel = k.ker;
+	register const int ker_s = k->size ;
+	register const int ker_hsize = ( k->size - 1)/2 ;
+	double* kernel = k->ker;
+	double* ker_norm = k->kernorm;
 	
 	
 	uint16_t* image = (uint16_t*)input_img->data; 
-	uint16_t* out_image = (uint16_t*)malloc( xdim*ydim*2*sizeof(uint8_t) );
+	
+	//store the blurred pixels in a buffer
+	//it will essentially be a new image that will rpelace the input one at the end
+	uint16_t* out_image = (uint16_t*)malloc( xdim*ydim*sizeof(uint16_t) );
 	
 
 	
@@ -42,10 +46,17 @@ void pgm_blur_copy(  pgm* input_img , kernel_t k) {
 			if (!normy)
 				normx = ( (j<ker_hsize) || (j>=(xdim - ker_hsize) ) );
 			
-			//printf("i j : %d %d\n",i,j);
-			//printf("normx normy : %d %d\n",normx , normy);
-			//general code to stay within the boundaries
-			//if we're closer to the edges than the kernel half size
+			/*
+			general code to stay within the boundaries of the image
+			the offsets # are the pixels between the current pixel and the edge
+			they provide the boundaries of the kernel scanning loop
+			image pixels and kernel indices are accordingly adjusted
+			
+			ex. for a full 3x3 kernel the offses are = l -1, u - 1, r +1, d +1
+			
+			overlaying the kernel over the top left corner of the image 
+			the offsets become = l 0, u 0, r +1, d +1
+			*/
 			
 			offs_l = -min( ker_hsize, j );
 			offs_u = -min( ker_hsize, i );
@@ -60,15 +71,14 @@ void pgm_blur_copy(  pgm* input_img , kernel_t k) {
 				}
 				
 			}
-			//vignette kernel renormalization loop
+			//vignette renormalisation
+			//we use the normalisation matrix pre-computed and use the offsets variables
+			//to extract the right entry, which is the normalisation value
+			//if the kernel is fully within the borders the indices would point to the central value
+			//which is always 1, we skip these calculations
+			
 			if (normy || normx ) {
-				normc=0;
-				for (int k = offs_u; k<= offs_d; ++k) {
-					for (int t =  offs_l; t<= offs_r; ++t) {
-						normc += kernel[ ker_s*(ker_hsize + k) +  ker_hsize + t  ] ;
-					}
-				
-				}
+				normc=ker_norm[ker_s*(ker_hsize + offs_u + offs_d) +  ker_hsize + offs_l + offs_r];
 				accum = accum/normc;
 			}
 			out_image[i*xdim + j] = (uint16_t)accum;
@@ -87,7 +97,7 @@ void pgm_blur_copy(  pgm* input_img , kernel_t k) {
 
 
 
-void pgm_blur_linebuf(  pgm* input_img , kernel_t k) {
+void pgm_blur_linebuf(  pgm* input_img , const kernel_t* k) {
 	
 	
 	register const int xdim = input_img->width ;
@@ -96,18 +106,28 @@ void pgm_blur_linebuf(  pgm* input_img , kernel_t k) {
 	register const int ydim1 = input_img->height  - 1;
 
 	
-	register const int ker_s = k.size ;
-	register const int ker_hsize = ( k.size - 1)/2 ;
-	double* kernel = k.ker;
+	register const int ker_s = k->size ;
+	register const int ker_hsize = ( k->size - 1)/2 ;
+	double* kernel = k->ker;
+	double* ker_norm = k->kernorm;
 	
 	
 	uint16_t* image = (uint16_t*)input_img->data; 
-
+	
+	/*
+	store the blurred pixels in a buffer
+	the buffer is as wide as the image and has half as many lines as the kernel
+	including the middle line
+	we roll through the buffer and fill the lines with the blurred pixels
+	only when the buffer is full we start back at line 0 and memcpy it at line 0 of the image data
+	we're safe that we only overwrite when the data is no longer needed
+	
+	at the end all the calculations are done but the buffer is full of data still to be written
+	*/
 	
 	register const int buffer_lines = (ker_hsize + 1);
 	register int line_idx; 
-	
-	int16_t* linebuf = (int16_t*)malloc( buffer_lines*xdim*(2)*sizeof(int8_t) );
+	int16_t* linebuf = (int16_t*)malloc( buffer_lines*xdim*sizeof(int16_t) );
 	
 	register int offs_l, offs_r, offs_u, offs_d;
 	register double accum, normc;
@@ -119,23 +139,30 @@ void pgm_blur_linebuf(  pgm* input_img , kernel_t k) {
 		line_idx = xdim*(i%buffer_lines);
 		
 		if (i>=buffer_lines) {
-			//printf("line written : %d\n",i-2);
-			//printf("line_idx : %d\n",i%buffer_lines);
-			memcpy( &image[(i-buffer_lines)*xdim] , (uint8_t*)(&linebuf[line_idx]), xdim*(2)*sizeof(int8_t) );
+			memcpy( &image[(i-buffer_lines)*xdim] , (&linebuf[line_idx]), xdim*sizeof(int16_t) );
 		}
 		
-		//are we close to the top/bottom edges?
+		//are we close to the left/right edges?
 		normy = ( (i<ker_hsize) || (i>=(ydim - ker_hsize) ) );
 		
 		for (int j=0; j<xdim; ++j) {
 			
-			//are we close to the left/right edges?
-			normx = ( (j<ker_hsize) || (j>=(xdim - ker_hsize) ) );
 			
-			//general code to stay within the boundaries of the image
-			//the offsets # are the pixels between the current pixel and the edge
-			//they provide the boundaries of the kernel scanning loop
-			//image pixels and kernel value indices are accordingly adjusted
+			//are we close to the top/bottom edges?
+			if (!normy)
+				normx = ( (j<ker_hsize) || (j>=(xdim - ker_hsize) ) );
+			
+			/*
+			general code to stay within the boundaries of the image
+			the offsets # are the pixels between the current pixel and the edge
+			they provide the boundaries of the kernel scanning loop
+			image pixels and kernel indices are accordingly adjusted
+			
+			ex. for a full 3x3 kernel the offses are = l -1, u - 1, r +1, d +1
+			
+			overlaying the kernel over the top left corner of the image 
+			the offsets become = l 0, u 0, r +1, d +1
+			*/
 			
 			offs_l = -min( ker_hsize, j );
 			offs_u = -min( ker_hsize, i );
@@ -150,28 +177,37 @@ void pgm_blur_linebuf(  pgm* input_img , kernel_t k) {
 				}
 				
 			}
-			//vignette kernel renormalization loop
+			
+			//vignette renormalisation
+			//we use the normalisation matrix pre-computed and use the offsets variables
+			//to extract the right entry, which is the normalisation value
+			//if the kernel is fully within the borders the indices would point to the central value
+			//which is always 1, we skip these calculations
 			
 			if (normy || normx ) {
-					normc=0;
-					for (int k = offs_u; k<= offs_d; ++k) {
-						for (int t =  offs_l; t<= offs_r; ++t) {
-							normc += kernel[ ker_s*(ker_hsize + k) +  ker_hsize + t  ] ;
-						}
-
-					}
+				normc=ker_norm[ker_s*(ker_hsize + offs_u + offs_d) +  ker_hsize + offs_l + offs_r];
 				accum = accum/normc;
 			}
+			
 			linebuf[line_idx + j] = (uint16_t)accum;
 		}
 	}
 	
 	
-	for (int i=0; i<buffer_lines; ++i) {
-		//printf("line written : %d\n",ydim-buffer_lines + i);
-		//printf("line_idx : %d\n",i);
-		memcpy( &image[(ydim-buffer_lines + i)*xdim] , (uint8_t*)(&linebuf[i]), xdim*(2)*sizeof(int8_t) );	
+	//the buffer is full of lines still to write
+	//but the next buffer line to write will be at an arbitrary index
+	
+	//this is the buffer line that contains the next line of data
+	int j = (ydim - buffer_lines)%buffer_lines ;
+	
+	//write the data in the last lines of the image
+	//when we reach the end of the buffer, wrap around as the last lines to write are at the top
+	for (int i = ydim - buffer_lines; i<ydim; ++i) {
+		memcpy( &image[i*xdim] , (&linebuf[xdim*j]), xdim*sizeof(int16_t) );	
+		j = (j + 1)%buffer_lines;
 	}
+	
+	
 
 	free(linebuf);
 	printf("Blurring complete.\n");

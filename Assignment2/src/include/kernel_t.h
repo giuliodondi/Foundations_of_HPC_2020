@@ -5,8 +5,9 @@
 
 //kernel struct definition
 typedef struct {
-	double* ker;
 	int size;
+	double* ker;
+	double* kernorm;
 } kernel_t;
 
 
@@ -15,6 +16,7 @@ void average_kernel(kernel_t* k, const unsigned int kernel_size);
 void weighted_kernel(kernel_t* k, const unsigned int kernel_size, const float kernel_weight);
 //void gaussian_kernel(kernel_t* k, const unsigned int kernel_size);
 void gaussian_kernel_simple(kernel_t* k, const unsigned int kernel_size);
+void get_kernel_normalisations(kernel_t* k);
 
 void delete_kernel( kernel_t* k) ;
 
