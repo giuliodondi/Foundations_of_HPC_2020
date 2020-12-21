@@ -1,0 +1,23 @@
+loading dependency gnu/9.3.0
+loading dependency numactl/2.0.13
+loading dependency hwloc/2.2.0
+2.62user 0.00system 0:02.62elapsed 99%CPU (0avgtext+0avgdata 1404maxresident)k
+0inputs+8outputs (0major+67minor)pagefaults 0swaps
+2.71user 0.13system 0:02.91elapsed 97%CPU (0avgtext+0avgdata 123636maxresident)k
+0inputs+16648outputs (9major+33034minor)pagefaults 0swaps
+2.63user 0.00system 0:02.63elapsed 100%CPU (0avgtext+0avgdata 1364maxresident)k
+0inputs+8outputs (0major+68minor)pagefaults 0swaps
+2.70user 0.13system 0:02.89elapsed 98%CPU (0avgtext+0avgdata 123384maxresident)k
+0inputs+16648outputs (9major+33028minor)pagefaults 0swaps
+2.62user 0.00system 0:02.62elapsed 99%CPU (0avgtext+0avgdata 1424maxresident)k
+0inputs+8outputs (0major+68minor)pagefaults 0swaps
+2.70user 0.12system 0:02.89elapsed 97%CPU (0avgtext+0avgdata 123368maxresident)k
+0inputs+16664outputs (9major+33075minor)pagefaults 0swaps
+2.62user 0.00system 0:02.62elapsed 99%CPU (0avgtext+0avgdata 1368maxresident)k
+0inputs+8outputs (0major+68minor)pagefaults 0swaps
+2.71user 0.12system 0:02.90elapsed 98%CPU (0avgtext+0avgdata 123444maxresident)k
+0inputs+16648outputs (9major+33079minor)pagefaults 0swaps
+2.62user 0.00system 0:02.62elapsed 99%CPU (0avgtext+0avgdata 1380maxresident)k
+0inputs+8outputs (0major+65minor)pagefaults 0swaps
+2.72user 0.13system 0:02.90elapsed 98%CPU (0avgtext+0avgdata 123228maxresident)k
+0inputs+16648outputs (9major+33028minor)pagefaults 0swaps

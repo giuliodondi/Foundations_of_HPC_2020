@@ -1,0 +1,15 @@
+loading dependency gnu/9.3.0
+loading dependency numactl/2.0.13
+loading dependency hwloc/2.2.0
+262.31user 0.00system 4:22.35elapsed 99%CPU (0avgtext+0avgdata 1364maxresident)k
+0inputs+8outputs (0major+68minor)pagefaults 0swaps
+263.72user 0.11system 4:23.93elapsed 99%CPU (0avgtext+0avgdata 123192maxresident)k
+0inputs+16648outputs (9major+33039minor)pagefaults 0swaps
+262.48user 0.00system 4:22.51elapsed 99%CPU (0avgtext+0avgdata 1320maxresident)k
+0inputs+8outputs (0major+66minor)pagefaults 0swaps
+263.01user 0.13system 4:23.25elapsed 99%CPU (0avgtext+0avgdata 123148maxresident)k
+0inputs+16648outputs (9major+33077minor)pagefaults 0swaps
+262.55user 0.00system 4:22.58elapsed 99%CPU (0avgtext+0avgdata 1368maxresident)k
+0inputs+8outputs (0major+66minor)pagefaults 0swaps
+263.30user 0.13system 4:23.55elapsed 99%CPU (0avgtext+0avgdata 123324maxresident)k
+0inputs+16648outputs (9major+33041minor)pagefaults 0swaps

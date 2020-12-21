@@ -1,0 +1,78 @@
+loading dependency gnu/9.3.0
+loading dependency numactl/2.0.13
+loading dependency hwloc/2.2.0
+cp: cannot stat ‘pi.x’: No such file or directory
+[ct1pg-gnode004:8514 :0:8514]       ud_ep.c:255  Fatal: UD endpoint 0x14cb9c018c50 to <no debug data>: unhandled timeout error
+==== backtrace (tid:   8514) ====
+ 0 0x000000000004ee05 ucs_debug_print_backtrace()  ???:0
+ 1 0x0000000000046dde uct_ud_grh_get_dgid()  ???:0
+ 2 0x0000000000048a8e ucs_callbackq_put_id_noflag()  ???:0
+ 3 0x000000000002300a ucp_worker_progress()  ???:0
+ 4 0x0000000000005433 mca_pml_ucx_send()  ???:0
+ 5 0x000000000008ae38 PMPI_Ssend()  ???:0
+ 6 0x0000000000400d6e main()  ???:0
+ 7 0x0000000000022505 __libc_start_main()  ???:0
+ 8 0x0000000000400a19 _start()  ???:0
+=================================
+[ct1pg-gnode004:08514] *** Process received signal ***
+[ct1pg-gnode004:08514] Signal: Aborted (6)
+[ct1pg-gnode004:08514] Signal code:  (-6)
+[ct1pg-gnode004:08514] [ 0] /lib64/libpthread.so.0(+0xf5f0)[0x14cbbad2e5f0]
+[ct1pg-gnode004:08514] [ 1] /lib64/libc.so.6(gsignal+0x37)[0x14cbba987337]
+[ct1pg-gnode004:08514] [ 2] /lib64/libc.so.6(abort+0x148)[0x14cbba988a28]
+[ct1pg-gnode004:08514] [ 3] /lib64/libucs.so.0(ucs_fatal_error_message+0x55)[0x14cbaddde7f5]
+[ct1pg-gnode004:08514] [ 4] /lib64/libucs.so.0(+0x4d995)[0x14cbaddde995]
+[ct1pg-gnode004:08514] [ 5] /lib64/ucx/libuct_ib.so.0(+0x46dde)[0x14cbad74edde]
+[ct1pg-gnode004:08514] [ 6] /lib64/libucs.so.0(+0x48a8e)[0x14cbaddd9a8e]
+[ct1pg-gnode004:08514] [ 7] /lib64/libucp.so.0(ucp_worker_progress+0x5a)[0x14cbae56000a]
+[ct1pg-gnode004:08514] [ 8] /opt/area/shared/programs/x86_64/openmpi/4.0.3/gnu/9.3.0/lib/openmpi/mca_pml_ucx.so(mca_pml_ucx_send+0x2e3)[0x14cbaedae433]
+[ct1pg-gnode004:08514] [ 9] /opt/area/shared/programs/x86_64/openmpi/4.0.3/gnu/9.3.0/lib/libmpi.so.40(PMPI_Ssend+0x118)[0x14cbbafc5e38]
+[ct1pg-gnode004:08514] [10] mpi_pi.x[0x400d6e]
+[ct1pg-gnode004:08514] [11] /lib64/libc.so.6(__libc_start_main+0xf5)[0x14cbba973505]
+[ct1pg-gnode004:08514] [12] mpi_pi.x[0x400a19]
+[ct1pg-gnode004:08514] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 4 with PID 0 on node ct1pg-gnode004 exited on signal 6 (Aborted).
+--------------------------------------------------------------------------
+[ct1pg-gnode004:9169 :0:9169]       ud_ep.c:255  Fatal: UD endpoint 0x14796000a3c0 to <no debug data>: unhandled timeout error
+==== backtrace (tid:   9169) ====
+ 0 0x000000000004ee05 ucs_debug_print_backtrace()  ???:0
+ 1 0x0000000000046dde uct_ud_grh_get_dgid()  ???:0
+ 2 0x0000000000048a8e ucs_callbackq_put_id_noflag()  ???:0
+ 3 0x000000000002300a ucp_worker_progress()  ???:0
+ 4 0x0000000000005433 mca_pml_ucx_send()  ???:0
+ 5 0x000000000008ae38 PMPI_Ssend()  ???:0
+ 6 0x0000000000400d6e main()  ???:0
+ 7 0x0000000000022505 __libc_start_main()  ???:0
+ 8 0x0000000000400a19 _start()  ???:0
+=================================
+[ct1pg-gnode004:09169] *** Process received signal ***
+[ct1pg-gnode004:09169] Signal: Aborted (6)
+[ct1pg-gnode004:09169] Signal code:  (-6)
+[ct1pg-gnode004:09169] [ 0] /lib64/libpthread.so.0(+0xf5f0)[0x1479802565f0]
+[ct1pg-gnode004:09169] [ 1] /lib64/libc.so.6(gsignal+0x37)[0x14797feaf337]
+[ct1pg-gnode004:09169] [ 2] /lib64/libc.so.6(abort+0x148)[0x14797feb0a28]
+[ct1pg-gnode004:09169] [ 3] /lib64/libucs.so.0(ucs_fatal_error_message+0x55)[0x14796f4347f5]
+[ct1pg-gnode004:09169] [ 4] /lib64/libucs.so.0(+0x4d995)[0x14796f434995]
+[ct1pg-gnode004:09169] [ 5] /lib64/ucx/libuct_ib.so.0(+0x46dde)[0x14796eda4dde]
+[ct1pg-gnode004:09169] [ 6] /lib64/libucs.so.0(+0x48a8e)[0x14796f42fa8e]
+[ct1pg-gnode004:09169] [ 7] /lib64/libucp.so.0(ucp_worker_progress+0x5a)[0x14796fbb600a]
+[ct1pg-gnode004:09169] [ 8] /opt/area/shared/programs/x86_64/openmpi/4.0.3/gnu/9.3.0/lib/openmpi/mca_pml_ucx.so(mca_pml_ucx_send+0x2e3)[0x147974362433]
+[ct1pg-gnode004:09169] [ 9] /opt/area/shared/programs/x86_64/openmpi/4.0.3/gnu/9.3.0/lib/libmpi.so.40(PMPI_Ssend+0x118)[0x1479804ede38]
+[ct1pg-gnode004:09169] [10] mpi_pi.x[0x400d6e]
+[ct1pg-gnode004:09169] [11] /lib64/libc.so.6(__libc_start_main+0xf5)[0x14797fe9b505]
+[ct1pg-gnode004:09169] [12] mpi_pi.x[0x400a19]
+[ct1pg-gnode004:09169] *** End of error message ***
+--------------------------------------------------------------------------
+Primary job  terminated normally, but 1 process returned
+a non-zero exit code. Per user-direction, the job has been aborted.
+--------------------------------------------------------------------------
+--------------------------------------------------------------------------
+mpirun noticed that process rank 2 with PID 0 on node ct1pg-gnode004 exited on signal 6 (Aborted).
+--------------------------------------------------------------------------
+cp: cannot stat ‘pi.x’: No such file or directory
+=>> PBS: job killed: walltime 3640 exceeded limit 3600

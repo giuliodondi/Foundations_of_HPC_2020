@@ -1,0 +1,28 @@
+loading dependency gnu/9.3.0
+loading dependency numactl/2.0.13
+loading dependency hwloc/2.2.0
+263.06user 0.12system 4:23.28elapsed 99%CPU (0avgtext+0avgdata 122960maxresident)k
+0inputs+16648outputs (9major+33041minor)pagefaults 0swaps
+1054.24user 1.53system 4:23.84elapsed 400%CPU (0avgtext+0avgdata 124300maxresident)k
+0inputs+16648outputs (9major+120473minor)pagefaults 0swaps
+2118.66user 2.83system 4:25.41elapsed 799%CPU (0avgtext+0avgdata 125144maxresident)k
+0inputs+16648outputs (9major+238071minor)pagefaults 0swaps
+3191.12user 4.68system 4:26.63elapsed 1198%CPU (0avgtext+0avgdata 125628maxresident)k
+0inputs+16648outputs (9major+356865minor)pagefaults 0swaps
+4368.32user 8.32system 4:52.12elapsed 1498%CPU (0avgtext+0avgdata 126352maxresident)k
+0inputs+16648outputs (9major+477377minor)pagefaults 0swaps
+5445.78user 9.86system 4:32.95elapsed 1998%CPU (0avgtext+0avgdata 126836maxresident)k
+0inputs+16648outputs (9major+597983minor)pagefaults 0swaps
+6579.82user 7.54system 4:34.77elapsed 2397%CPU (0avgtext+0avgdata 127644maxresident)k
+0inputs+16648outputs (9major+720152minor)pagefaults 0swaps
+8283.28user 11.80system 4:59.31elapsed 2771%CPU (0avgtext+0avgdata 128072maxresident)k
+0inputs+16648outputs (9major+843467minor)pagefaults 0swaps
+9932.90user 12.82system 5:12.34elapsed 3184%CPU (0avgtext+0avgdata 128640maxresident)k
+0inputs+16664outputs (9major+967867minor)pagefaults 0swaps
+11063.47user 14.44system 5:08.89elapsed 3586%CPU (0avgtext+0avgdata 129344maxresident)k
+0inputs+16664outputs (9major+1092698minor)pagefaults 0swaps
+12849.27user 20.32system 5:27.25elapsed 3932%CPU (0avgtext+0avgdata 129988maxresident)k
+0inputs+16664outputs (9major+1221893minor)pagefaults 0swaps
+13967.62user 23.22system 5:21.12elapsed 4356%CPU (0avgtext+0avgdata 130628maxresident)k
+0inputs+16664outputs (9major+1348176minor)pagefaults 0swaps
+=>> PBS: job killed: walltime 3635 exceeded limit 3600
