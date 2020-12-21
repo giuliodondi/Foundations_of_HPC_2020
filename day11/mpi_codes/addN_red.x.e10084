@@ -1,0 +1,3 @@
+/var/spool/pbs/mom_priv/jobs/10084.192.168.10.5.SC: line 1: $'\177ELF\002\001\001Too': command not found
+/var/spool/pbs/mom_priv/jobs/10084.192.168.10.5.SC: line 2: Unable: command not found
+/var/spool/pbs/mom_priv/jobs/10084.192.168.10.5.SC: line 3: $'\001': command not found
