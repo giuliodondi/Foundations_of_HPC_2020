@@ -27,7 +27,7 @@ mpi: $(COMMON_OBJ) $(MPI_OBJ)
 	$(COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
 
 clean:
-	rm -rf $(SERIAL_OBJ) $(COMMON_OBJ) $(OPENMP_OBJ) $(MPI_OBJ) $(EXE_NAME) $(MOD)
+	rm -rf $(SERIAL_OBJ) $(SERIALTEST_OBJ) $(COMMON_OBJ) $(OPENMP_OBJ) $(MPI_OBJ) $(EXE_NAME) $(MOD)
 	
 .PHONY: clean default
 
