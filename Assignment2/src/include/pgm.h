@@ -6,11 +6,11 @@
 
 //pgm struct definition
 typedef struct {
+	
 	int width;
 	int height;
 	int maxval;
 	uint8_t* data;
-	
 } pgm;
 
 

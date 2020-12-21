@@ -10,10 +10,13 @@
 
 int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned int ker_s, const float kernel_weight) {
 	
-	//initialise the kernel
+	k->size = ker_s;
+	k->ker = (double*)calloc( ker_s*ker_s , sizeof(double));
+	
+	//initialise the kernel matrix
 	switch  (kernel_type) {
 		case 0:
-			average_kernel(k, ker_s);
+			average_kernel(k);
 			break;
 		case 1:
 			//check if the weight was given as argument
@@ -22,13 +25,13 @@ int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned i
 				return -1;
 			}
 			else {
-				weighted_kernel(k, ker_s, kernel_weight);
+				weighted_kernel(k, kernel_weight);
 				break;
 				
 			}
 		case 2 :
-			gaussian_kernel_simple(k, ker_s);
-			//gaussian_kernel(k, ker_s);
+			gaussian_kernel_simple(k);
+			//gaussian_kernel(k);
 			break;
 		default:
 			printf("Error: unknown kernel type.\n");
@@ -37,6 +40,7 @@ int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned i
 			
 	}
 	
+	k->kernorm = (double*)calloc( ker_s*ker_s , sizeof(double));
 	get_kernel_normalisations(k);
 	
 	printf("Kernel initialised.\n");
@@ -45,66 +49,61 @@ int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned i
 }
 
 
-void average_kernel(kernel_t* k, const unsigned int ker_s) {
+void average_kernel(kernel_t* k) {
 	
-	int ker_s2 = ker_s*ker_s;
+	double* kernel_matrix = k->ker;
+	const size_t ker_s2 = (k->size*k->size);
 	
-	double* kernel_matrix = (double*)calloc( ker_s2 , sizeof(double));
-	
-	for (unsigned int i=0; i<ker_s; ++i) {
-		for (unsigned int j=0; j<ker_s; ++j) {
-			kernel_matrix[i*ker_s + j] = (float)1/ker_s2;
-		}
+	for (size_t i=0; i<ker_s2; ++i) {
+		kernel_matrix[i] = (float)1/ker_s2;
 	}
 	
 	
-	k->ker = kernel_matrix;
-	k->size = ker_s;
+	// = kernel_matrix;
+	//k->size = ker_s;
 }
 
 
-void weighted_kernel(kernel_t* k, const unsigned int ker_s, const float kernel_weight) {
+void weighted_kernel(kernel_t* k, const float kernel_weight) {
 	
-	int ker_s2 = ker_s*ker_s;
+	double* kernel_matrix = k->ker;
+	const size_t ker_s2 = (k->size*k->size);
 	
 	float w = ( 1 - kernel_weight)/(ker_s2-1);
 	
-	double* kernel_matrix = (double*)calloc( ker_s*ker_s , sizeof(double));
 	
-	for (unsigned int i=0; i<ker_s; ++i) {
-		for (unsigned int j=0; j<ker_s; ++j) {
-			kernel_matrix[i*ker_s + j] = w;
-		}
+	for (size_t i=0; i<ker_s2; ++i) {
+		kernel_matrix[i] = w;
 	}
 	
-	int mid_idx = (ker_s-1)/2;
-	kernel_matrix[mid_idx*(ker_s+1)] = kernel_weight;
+	int mid_idx = (k->size-1)/2;
+	kernel_matrix[mid_idx*(k->size+1)] = kernel_weight;
 	
 	
-	k->ker = kernel_matrix;
-	k->size = ker_s;
+	//k->ker = kernel_matrix;
 }
 
 
 //this uses the binomial coefficients
 //uses the tgamma function in math.h for the factorial
-void gaussian_kernel_simple(kernel_t* k, const unsigned  int ker_s) {
+void gaussian_kernel_simple(kernel_t* k) {
+	
+	double* kernel_matrix = k->ker;
+	const size_t ker_s = k->size;
 	
 	float binomial[ker_s];
 	float newval, norm=0, num=tgamma(ker_s );
 
-	for (unsigned int k=0; k<ker_s; ++k) {
+	for (size_t k=0; k<ker_s; ++k) {
 		newval = num/ ( tgamma(k + 1)*tgamma(ker_s - k ) );
 		binomial[k]	= newval;
 		norm += newval;
 	}
 	norm = norm*norm;
-	
-	
-	double* kernel_matrix = (double*)calloc( ker_s*ker_s , sizeof(double));
 
-	for (unsigned int i=0; i<ker_s; ++i) {
-		for (unsigned int j=0; j<ker_s; ++j) {
+
+	for (size_t i=0; i<ker_s; ++i) {
+		for (size_t j=0; j<ker_s; ++j) {
 			kernel_matrix[i*ker_s + j] =  binomial[i]*binomial[j]/norm;
 		}
 	}
@@ -116,7 +115,7 @@ void gaussian_kernel_simple(kernel_t* k, const unsigned  int ker_s) {
 
 
 
-//void gaussian_kernel(kernel_t* k, const int ker_s) {
+//void gaussian_kernel(kernel_t* k) {
 //	
 //	int mid_idx = (ker_s-1)/2;
 //	
@@ -173,7 +172,7 @@ void get_kernel_normalisations(kernel_t* k) {
 	register int offs_l, offs_r, offs_u, offs_d;
 	register double normc;
 	
-	double* kernel_norm = (double*)calloc( ker_s*ker_s , sizeof(double));
+	double* kernel_norm = k->kernorm;
 	
 	for (int i=0; i<ker_s; ++i) {
 		for (int j=0; j<ker_s; ++j) {
@@ -194,8 +193,7 @@ void get_kernel_normalisations(kernel_t* k) {
 				
 		}
 	}
-	
-	k->kernorm = kernel_norm;
+
 }
 
 

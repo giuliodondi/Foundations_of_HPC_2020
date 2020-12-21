@@ -1,7 +1,6 @@
 #include <pgm.h>
 #include <kernel_t.h>
 #include <common_headers.h>
-#include <blur_serial_headers.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,6 +10,11 @@
 
 
 #define NITER 10
+
+//serial function headers
+void pgm_blur_copy(  pgm* input_img , kernel_t* k);
+void pgm_blur_linebuf(  pgm* input_img , kernel_t* k);
+void pgm_blur_linebuf_unrol(  pgm* input_img , kernel_t* k);
 
 
 int main( int argc, char **argv ) 

@@ -1,7 +1,6 @@
 #include <pgm.h>
 #include <kernel_t.h>
 #include <common_headers.h>
-#include <blur_serial_headers.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -9,7 +8,10 @@
 #include <stdint.h>
 #include <time.h>
 
-
+//serial function headers
+void pgm_blur_copy(  pgm* input_img , kernel_t* k);
+void pgm_blur_linebuf(  pgm* input_img , kernel_t* k);
+void pgm_blur_linebuf_unrol(  pgm* input_img , kernel_t* k);
 
 
 
@@ -36,6 +38,9 @@ int main( int argc, char **argv )
 		return -1;
 	}
 	
+	
+		
+	
 
 	if (read_pgm( &image , infile)== -1 ) {
 		printf("Aborting.\n");
@@ -43,7 +48,8 @@ int main( int argc, char **argv )
 		delete_kernel(&kernel_ptr);
 		return -1;
 	}
-
+	
+	
 	
     
     printf("Input file \"%s\" has been read.\n",infile);
