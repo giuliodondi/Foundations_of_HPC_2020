@@ -201,6 +201,8 @@ void get_kernel_normalisations(kernel_t* k) {
 
 void delete_kernel( kernel_t* k) {
 	free(k->ker);
+	free(k->kernorm);
 	k->ker=NULL;
+	k->kernorm=NULL;
 	k->size=0;
 }

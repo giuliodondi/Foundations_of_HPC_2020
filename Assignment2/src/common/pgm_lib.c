@@ -177,6 +177,24 @@ char read_pgm( pgm* input_img, const char *image_name) {
 //  return;
 //}
 
+void copy_pgm( pgm *image1, pgm* image2) {
+	
+	image2->width = image1->width;
+	image2->height = image1->height;
+	image2->maxval = image1->maxval;
+	
+	if (image2->data) {
+		free(image2->data);
+	}
+	
+	unsigned int elements = image1->width * image1->height;
+	unsigned int img_size =  elements*(1 + (image1->maxval > 255));
+	
+	image2->data = (uint8_t*)malloc( img_size*sizeof(uint8_t) );
+	
+	memcpy( image2->data , image1->data, img_size*sizeof(uint8_t)  );
+
+}
 
 
 void clear_pgm( pgm *image) {

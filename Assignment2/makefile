@@ -5,6 +5,7 @@ INCLUDE = -I src/include/
 
 COMMON_OBJ = src/common/blur_common_lib.o  src/common/pgm_lib.o src/common/kernel_lib.o 
 SERIAL_OBJ = src/blur_serial_main.o src/serial/pgm_blur_serial.o
+SERIALTEST_OBJ = src/blur_serial_main_perftest.o src/serial/pgm_blur_serial.o
 OPENMP_OBJ =
 MPI_OBJ =
 
@@ -12,9 +13,12 @@ MOD= *.mod
 
 default: serial
 
-
 serial: $(COMMON_OBJ)  $(SERIAL_OBJ)
 	$(COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
+	
+serialtest: $(COMMON_OBJ)  $(SERIALTEST_OBJ)
+	$(COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
+	
 	
 openmp: $(COMMON_OBJ) $(OPENMP_OBJ) 
 	$(COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm

@@ -17,7 +17,6 @@ int main( int argc, char **argv )
 { 
 
 	
-
     
 	//read command-line arguments and initialise the variables
 	
@@ -55,14 +54,16 @@ int main( int argc, char **argv )
     
 
 	//pgm_blur_copy( &image, &kernel_ptr );
-	pgm_blur_linebuf( &image, &kernel_ptr );
+	//pgm_blur_linebuf( &image, &kernel_ptr );
+	pgm_blur_linebuf_unrol( &image, &kernel_ptr );
+	//pgm_blur_linebuf_unrol3( &image, &kernel_ptr );
 	
 	clock_t end = clock();
 	printf("Elapsed: %f seconds\n", (double)(end - begin) / CLOCKS_PER_SEC );
 
         
    
-	if ( write_pgm( &image, outfile);== -1 ) {
+	if ( write_pgm( &image, outfile)== -1 ) {
 		printf("Aborting.\n");
 		clear_pgm( &image);
 		delete_kernel(&kernel_ptr);
