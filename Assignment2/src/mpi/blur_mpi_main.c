@@ -91,26 +91,29 @@ int main( int argc, char **argv )
 		MPI_Bcast(kernel_ptr.ker, kernel_ptr.size*kernel_ptr.size, MPI_DOUBLE, master, MPI_COMM_WORLD);
 		MPI_Bcast(kernel_ptr.kernorm, kernel_ptr.size*kernel_ptr.size, MPI_DOUBLE, master, MPI_COMM_WORLD);
 		
-		
+		halowidth = (kernel_ptr.size - 1)/2;
 		//now figure out the number of image lines to send to each process
 		//master will take care of the top and bottom halo aeras plus an arbitrary number of lines
 		//we'll try to give master about half as much work as the other processors
+		//but master must take care at least of the top and bottom halo regions
 		
-		halowidth = (kernel_ptr.size - 1)/2;
-		masterlines = 100;
-		childlines = ceil( (original_image.height - 2*halowidth -  masterlines)/(nprocs - 1) );
-		tmp = original_image.height - childlines*(nprocs - 1);
-		while (tmp < 2*(halowidth) ) {
-			++masterlines;
-			childlines  = ceil( (original_image.height - 2*halowidth - masterlines)/(nprocs - 1) );
-			tmp = original_image.height - childlines*(nprocs - 1);
+		masterlines = max(2*halowidth,floor((float)original_image.height/(2*nprocs - 1)));
+		childlines = floor(original_image.height - masterlines)/(nprocs - 1) ;
+	
+		while ( ( original_image.height - masterlines - childlines*(nprocs - 1) )>0 ) {
+			++masterlines ;	
+			childlines = floor(original_image.height - masterlines)/(nprocs - 1) ;
 		}
-		//add the top and bottom halos
-		childlines += 2*halowidth;
+		
 		
 		
 		printf("\nMaster will process %d lines of the image.\n", masterlines + 2*halowidth);
-		printf("\nEach children process will receive %d lines of the image.\n", childlines);
+		printf("Each children process will receive %d lines of the image.\n", childlines);
+		
+		//add the top and bottom halos
+		childlines += 2*halowidth;
+		//subtract them from the master lines so we keep them separate
+		masterlines -= 2*halowidth;
 		
 		//send info on the incoming image data
 		MPI_Bcast(&original_image.width, 1, MPI_INT, master, MPI_COMM_WORLD);
@@ -175,7 +178,7 @@ int main( int argc, char **argv )
 		
 		
 		//now the bottom portion
-		local_image.height = 2*halowidth;
+		local_image.height = 2*halowidth + 1;
 		
 		masterbuf_size =  local_image.width * local_image.height*img_bytes;
 		
@@ -203,7 +206,6 @@ int main( int argc, char **argv )
 		
 		//this is where the first data buffer starts, includes the halo
 		tmp = masterlines + halowidth;
-		//send data to the processes
 		for (int p=1;p < nprocs; ++p) {
 			buf_idx = tmp*original_image.width*img_bytes;
 			MPI_Recv(&original_image.data[buf_idx] , childbuf_size , MPI_UINT8_T, p, recvtag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);	

@@ -10,7 +10,10 @@ int min( const int a, const int b) {
 	else {return b;}
 }
 
-
+int max( const int a, const int b) {
+	if (a>b) {return a;}
+	else {return b;}
+}
 
 
 
