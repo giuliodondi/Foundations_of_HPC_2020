@@ -171,7 +171,7 @@ void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const uint8_t* halos) 
 	
 
 	free(linebuf);
-	printf("Blurring complete.\n");
+	//printf("Blurring complete.\n");
 	return ;
 
 	

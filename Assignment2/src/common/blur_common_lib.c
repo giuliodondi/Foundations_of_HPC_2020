@@ -5,18 +5,20 @@
 #include <unistd.h>
 #include <stdint.h>
 
-
-
-
 int min( const int a, const int b) {
 	if (a<b) {return a;}
 	else {return b;}
 }
 
+
+
+
+
 void print_usage(char **argv) {
 	printf("Usage: %s -input input_img.pgm -kernel_type t -kernel-size s (optional) -output output_img.pgm -kernel-weight w.\n",argv[0]);
 }
 
+//handles the program parameters and initialises the kernel struct
 int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char* outfile , kernel_t* k ) {
 	
 	int kernel_type=-1;
