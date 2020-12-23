@@ -8,7 +8,6 @@ KER_WGHT=0.5
 
 
 
-
 #check for missing required arguments
 if [[ $# -eq 0 ]]
 then
@@ -22,24 +21,34 @@ then
 else
 FNAME=$1
 shift
+while [[ $# -gt 0 ]]
+do
 case $1 in 
 	-make|make)
 		shift
 		make clean
-		make "$@"
-		./blur.x -input ${FNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}
+		make "$1"
 	;;
 	-perf|perf)
 		perf stat -e task-clock,cycles,instructions,cache-references,cache-misses \
 		./blur.x -input ${FNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}
+		exit 0
 	;;
 	-valgrind|valgrind)
 		valgrind ./blur.x -input ${FNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}
 		exit 0
 	;;
+	-mpi|mpi)
+		echo $2
+		mpirun -np $2 ./blur.x -input ${FNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}
+		exit 0
+	;;
 	*)
 		./blur.x -input ${FNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}
+		exit 0
 	;;
 esac
+shift
+done
 fi
 
