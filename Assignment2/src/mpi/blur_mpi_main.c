@@ -121,22 +121,14 @@ int main( int argc, char **argv )
 		MPI_Bcast(&original_image.maxval, 1, MPI_INT, master, MPI_COMM_WORLD);
 		img_bytes = (1 + (original_image.maxval > 255));
 		
-		//allocate the comm buffer
-		childbuf_size =  original_image.width * childlines*img_bytes;
-		commbuf = (uint8_t*)malloc( childbuf_size*sizeof(uint8_t) );
-		if ( ! commbuf) {
-			printf("Master couldn't allocate memory for the comm buffer.\n");
-			free(commbuf);
-			clear_pgm( &original_image);
-			delete_kernel(&kernel_ptr);
-			return -1;
-		}
+
 		
 		//send data to the processes
 		//startline starts at the beginning of the first buffer
 		//each time it increments to the start of the next buffer
 		//accounting for the overlapping halos
 		tmp = masterlines;
+		childbuf_size =  original_image.width * childlines*img_bytes;
 		for (int p=1;p < nprocs; ++p) {
 			buf_idx = tmp*original_image.width*img_bytes;
 			printf("Master is sending to process %d.\n", p);
@@ -208,11 +200,11 @@ int main( int argc, char **argv )
 		tmp = masterlines + halowidth;
 		for (int p=1;p < nprocs; ++p) {
 			buf_idx = tmp*original_image.width*img_bytes;
-			//MPI_Recv(&original_image.data[buf_idx] , childbuf_size , MPI_UINT8_T, p, recvtag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);	
+			MPI_Recv(&original_image.data[buf_idx] , childbuf_size , MPI_UINT8_T, p, recvtag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);	
 			printf("Master has received from process %d.\n", p);
 			tmp += childlines - 2*halowidth;	
 		}
-		free(commbuf);
+		
 		
 		
 		
@@ -280,7 +272,7 @@ int main( int argc, char **argv )
 		tmp = halowidth*local_image.width*img_bytes;
 		//trim off the top and bottom halos from the total size
 		img_size -= 2*tmp;
-		//MPI_Send(&local_image.data[tmp], img_size, MPI_UINT8_T, master, recvtag, MPI_COMM_WORLD);
+		MPI_Send(&local_image.data[tmp], img_size, MPI_UINT8_T, master, recvtag, MPI_COMM_WORLD);
 		
 	}
 		
