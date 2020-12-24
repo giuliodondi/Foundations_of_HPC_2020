@@ -53,8 +53,7 @@ int main( int argc, char **argv )
 	if (irank == master) {
 		
 		//variables only for master 
-		uint8_t* commbuf;
-		size_t childbuf_size, masterbuf_size ;
+		size_t childbuf_size ;
 		int masterlines, childlines, buf_idx;
 		
 	
@@ -95,25 +94,26 @@ int main( int argc, char **argv )
 		//now figure out the number of image lines to send to each process
 		//master will take care of the top and bottom halo aeras plus an arbitrary number of lines
 		//we'll try to give master about half as much work as the other processors
-		//but master must take care at least of the top and bottom halo regions
+
 		
-		masterlines = max(2*halowidth,floor((float)original_image.height/(2*nprocs - 1)));
-		childlines = floor(original_image.height - masterlines)/(nprocs - 1) ;
+		masterlines = floor((float)original_image.height/(2*nprocs - 1));
+		childlines = floor((original_image.height - masterlines)/(nprocs - 1) );
+		
 	
 		while ( ( original_image.height - masterlines - childlines*(nprocs - 1) )>0 ) {
 			++masterlines ;	
-			childlines = floor(original_image.height - masterlines)/(nprocs - 1) ;
+			childlines = floor((original_image.height - masterlines)/(nprocs - 1) );
 		}
 		
 		
 		
-		printf("\nMaster will process %d lines of the image.\n", masterlines + 2*halowidth);
-		printf("Each children process will receive %d lines of the image.\n", childlines);
+		printf("\nMaster will process %d lines of the image.\n", masterlines );
+		printf("Each children process will receive %d lines of the image.\n\n", childlines);
+
 		
 		//add the top and bottom halos
 		childlines += 2*halowidth;
-		//subtract them from the master lines so we keep them separate
-		masterlines -= 2*halowidth;
+
 		
 		//send info on the incoming image data
 		MPI_Bcast(&original_image.width, 1, MPI_INT, master, MPI_COMM_WORLD);
@@ -127,7 +127,7 @@ int main( int argc, char **argv )
 		//startline starts at the beginning of the first buffer
 		//each time it increments to the start of the next buffer
 		//accounting for the overlapping halos
-		tmp = masterlines;
+		tmp = masterlines - halowidth;
 		childbuf_size =  original_image.width * childlines*img_bytes;
 		for (int p=1;p < nprocs; ++p) {
 			buf_idx = tmp*original_image.width*img_bytes;
@@ -139,65 +139,26 @@ int main( int argc, char **argv )
 
 		
 		//create the working pgm image for master
-		//first it will store the top portion, then the bottom
-		//we already know everything about where the data starts and ends
+		//fit will contain the top portion of the image
 		local_image.width = original_image.width;
-		local_image.height = masterlines + 2*halowidth;
+		local_image.height = masterlines + halowidth;
 		local_image.maxval = original_image.maxval;
-		
-		
-		masterbuf_size =  local_image.width * local_image.height*img_bytes;
-		local_image.data = (uint8_t*)malloc( masterbuf_size*sizeof(uint8_t) );
-		if ( ! local_image.data) {
-			printf("Master couldn't allocate memory for the image.\n");
-			clear_pgm(&local_image);
-			clear_pgm( &original_image);
-			delete_kernel(&kernel_ptr);
-			return -1;
-		}
-		
-		memcpy( local_image.data , &original_image.data[0], masterbuf_size*sizeof(uint8_t));
-		
-		//blur this portion nd write it back
+		local_image.data = &original_image.data[0];
 		
 		char halos[] = {0,0,0,1};
 		start_t = MPI_Wtime();
 		pgm_blur_halo( &local_image, &kernel_ptr , halos);
 		elapsed = MPI_Wtime() - start_t;
-		memcpy( &original_image.data[0] , &local_image.data[0], masterbuf_size*sizeof(uint8_t));
-		
-		
-		
-		
-		//now the bottom portion
-		local_image.height = 2*halowidth + 1;
-		
-		masterbuf_size =  local_image.width * local_image.height*img_bytes;
-		
-		tmp = original_image.width*original_image.height*img_bytes - masterbuf_size;
-		memcpy( &local_image.data[0] , &original_image.data[ tmp ], masterbuf_size*sizeof(uint8_t));
-
-		//blur this portion nd write it back
-		halos[1] = 1 ;
-		halos[3] = 0;
-		start_t = MPI_Wtime();
-		pgm_blur_halo( &local_image, &kernel_ptr , halos);
-		elapsed += MPI_Wtime() - start_t;
-
-		memcpy( &original_image.data[tmp] , &local_image.data[0], masterbuf_size*sizeof(uint8_t));
-
 		
 		printf("Wall time for Master : %f s.\n",elapsed);
 		
 		
 		//receive the children portions of the image
-		//the comm buffer is the one we used to send them out, but without
-		//the top and bottom halos
-		//decrease the size by the halo memory size
+		//decrease the buffer size by the halo memory size
 		childbuf_size -= 2*halowidth*original_image.width*img_bytes;
 		
 		//this is where the first data buffer starts, includes the halo
-		tmp = masterlines + halowidth;
+		tmp = masterlines;
 		for (int p=1;p < nprocs; ++p) {
 			buf_idx = tmp*original_image.width*img_bytes;
 			MPI_Recv(&original_image.data[buf_idx] , childbuf_size , MPI_UINT8_T, p, recvtag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);	
@@ -218,7 +179,9 @@ int main( int argc, char **argv )
 	   	printf("Master has written output file \"%s\".\n",outfile);
 		
 		
-		clear_pgm( &original_image);	
+		clear_pgm( &original_image);
+		//the local image points to the memory location of the original image which is free
+		local_image.data = NULL;
 	}
 	else {
 
@@ -260,6 +223,8 @@ int main( int argc, char **argv )
 		printf("Process %d received a %d x %d image.\n",irank,local_image.width,local_image.height);
 		
 		char halos[] = {0,1,0,1};
+		//the last process handles the bottom edge, no halo there
+		if (irank == nprocs - 1) {halos[3]=0;}
 
 		start_t = MPI_Wtime();
 		pgm_blur_halo( &local_image, &kernel_ptr , halos);
