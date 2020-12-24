@@ -39,7 +39,9 @@ int main( int argc, char **argv )
 	}
 	
 	
-		
+	//for (int i = 0; i < kernel_ptr.size*kernel_ptr.size;++i) {
+	//	printf("normc %f\n",kernel_ptr.kernorm[i] );	
+	//}
 	
 
 	if (read_pgm( &image , infile)== -1 ) {
@@ -62,7 +64,6 @@ int main( int argc, char **argv )
 	//pgm_blur_copy( &image, &kernel_ptr );
 	//pgm_blur_linebuf( &image, &kernel_ptr );
 	pgm_blur_linebuf_unrol( &image, &kernel_ptr );
-	//pgm_blur_linebuf_unrol3( &image, &kernel_ptr );
 	
 	clock_t end = clock();
 	printf("Elapsed: %f seconds\n", (double)(end - begin) / CLOCKS_PER_SEC );

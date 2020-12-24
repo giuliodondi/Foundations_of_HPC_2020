@@ -35,15 +35,15 @@ void pgm_blur_copy(  pgm* input_img , const kernel_t* k) {
 	
 	register int offs_l, offs_r, offs_u, offs_d;
 	register double accum, normc;
-	register uint8_t normflag=0;
+	register uint8_t normflagx,normflagy;
 
 	for (int i=0; i<ydim; ++i) {	
 		
-		normflag = ( (i<ker_hsize) || (i>=(ydim - ker_hsize) ) );
+		normflagy = ( (i<ker_hsize) || (i>=(ydim - ker_hsize) ) );
 		
 		for (int j=0; j<xdim; ++j) {
 			
-			normflag += ( (j<ker_hsize) || (j>=(xdim - ker_hsize) ) );
+			normflagx = normflagy +  ( (j<ker_hsize) || (j>=(xdim - ker_hsize) ) );
 			
 			/*
 			general code to stay within the boundaries of the image
@@ -76,9 +76,9 @@ void pgm_blur_copy(  pgm* input_img , const kernel_t* k) {
 			//if the kernel is fully within the borders the indices would point to the central value
 			//which is always 1, we skip these calculations
 			
-			if (normflag ) {
+			if (normflagx ) {
 				normc=ker_norm[ker_s*(ker_hsize + offs_u + offs_d) +  ker_hsize + offs_l + offs_r];
-				accum = accum/normc;
+				accum = accum*normc;
 			}
 			out_image[i*xdim + j] = (uint16_t)accum;
 		}
@@ -130,7 +130,7 @@ void pgm_blur_linebuf(  pgm* input_img , const kernel_t* k) {
 	
 	register int offs_l, offs_r, offs_u, offs_d;
 	register double accum, normc;
-	register uint8_t normflag=0;
+	register uint8_t normflagx,normflagy;
 
 	
 	
@@ -142,13 +142,13 @@ void pgm_blur_linebuf(  pgm* input_img , const kernel_t* k) {
 		}
 		
 		//are we close to the left/right edges?
-		normflag = ( (i<ker_hsize) || (i>=(ydim - ker_hsize) ) );
+		normflagy = ( (i<ker_hsize) || (i>=(ydim - ker_hsize) ) );
 		
 		for (int j=0; j<xdim; ++j) {
 			
 			
 			//are we close to the top/bottom edges?
-			normflag += ( (j<ker_hsize) || (j>=(xdim - ker_hsize) ) );
+			normflagx = normflagy + ( (j<ker_hsize) || (j>=(xdim - ker_hsize) ) );
 			
 			/*
 			general code to stay within the boundaries of the image
@@ -182,9 +182,10 @@ void pgm_blur_linebuf(  pgm* input_img , const kernel_t* k) {
 			//if the kernel is fully within the borders the indices would point to the central value
 			//which is always 1, we skip these calculations
 			
-			if (normflag ) {
+			if (normflagx ) {
+				printf("i j f: %d %d %d\n",i,j,normflagx);
 				normc=ker_norm[ker_s*(ker_hsize + offs_u + offs_d) +  ker_hsize + offs_l + offs_r];
-				accum = accum/normc;
+				accum = accum*normc;
 			}
 			
 			linebuf[line_idx + j] = (uint16_t)accum;
@@ -251,7 +252,7 @@ void pgm_blur_linebuf_unrol(  pgm* input_img , const kernel_t* k) {
 	
 	register int offs_l, offs_r, offs_u, offs_d;
 	register double accum, normc;
-	register uint8_t normflag=0;
+	register uint8_t normflagx,normflagy;
 
 	
 	
@@ -263,13 +264,13 @@ void pgm_blur_linebuf_unrol(  pgm* input_img , const kernel_t* k) {
 		}
 		
 		//are we close to the left/right edges?
-		normflag = ( (i<ker_hsize) || (i>=(ydim - ker_hsize) ) );
+		normflagy = ( (i<ker_hsize) || (i>=(ydim - ker_hsize) ) );
 		
 		for (int j=0; j<xdim; ++j) {
 			
 			
 			//are we close to the top/bottom edges?
-			normflag += ( (j<ker_hsize) || (j>=(xdim - ker_hsize) ) );
+			normflagx = normflagy + ( (j<ker_hsize) || (j>=(xdim - ker_hsize) ) );
 			
 			/*
 			general code to stay within the boundaries of the image
@@ -289,13 +290,33 @@ void pgm_blur_linebuf_unrol(  pgm* input_img , const kernel_t* k) {
 			offs_d = min( ker_hsize, ydim1 - i );
 			
 			
-			accum= kernel[ ker_s*(ker_hsize + offs_u) +  ker_hsize + offs_l  ]*( image[(i + offs_u)*xdim + j + offs_l] );
-			for (int k = offs_u; k<= offs_d; ++k) {
-				for (int t =  offs_l + 1; t<= offs_r; t+=2) {
-					accum += kernel[ ker_s*(ker_hsize + k) +  ker_hsize + t  ]*( image[(i + k)*xdim + j + t] ) 
-							+ kernel[ ker_s*(ker_hsize + k) +  ker_hsize + t +1 ]*( image[(i + k)*xdim + j + t + 1] );
+			accum=0;
+			if (( offs_r - offs_l)%2) {
+				//this branch selects the odd-sized convolutions which can only happen if the normflag is enabled
+				//so this branch is never entered when we're far from the borders
+				for (int k = offs_u; k<= offs_d; ++k) {
+					accum += kernel[ ker_s*(ker_hsize + k) +  ker_hsize + offs_l  ]*( image[(i + k)*xdim + j + offs_l] )
+							+ kernel[ ker_s*(ker_hsize + k) +  ker_hsize + offs_l + 1  ]*( image[(i + k)*xdim + j + offs_l + 1] );
+					for (int t =  offs_l + 2; t<= offs_r; t+=2) {
+						//printf("k t : %d %d \n",k,t);
+						//getchar();
+						accum += kernel[ ker_s*(ker_hsize + k) +  ker_hsize + t  ]*( image[(i + k)*xdim + j + t] ) 
+								+ kernel[ ker_s*(ker_hsize + k) +  ker_hsize + t +1 ]*( image[(i + k)*xdim + j + t + 1] );
+					}
+
 				}
-				
+			}
+			else {
+				for (int k = offs_u; k<= offs_d; ++k) {
+					accum += kernel[ ker_s*(ker_hsize + k) +  ker_hsize + offs_l  ]*( image[(i + k)*xdim + j + offs_l] );
+					for (int t =  offs_l + 1; t<= offs_r; t+=2) {
+						//printf("k t : %d %d \n",k,t);
+						//getchar();
+						accum += kernel[ ker_s*(ker_hsize + k) +  ker_hsize + t  ]*( image[(i + k)*xdim + j + t] ) 
+								+ kernel[ ker_s*(ker_hsize + k) +  ker_hsize + t +1 ]*( image[(i + k)*xdim + j + t + 1] );
+					}
+
+				}	
 			}
 			
 			//vignette renormalisation
@@ -304,9 +325,10 @@ void pgm_blur_linebuf_unrol(  pgm* input_img , const kernel_t* k) {
 			//if the kernel is fully within the borders the indices would point to the central value
 			//which is always 1, we skip these calculations
 			
-			if (normflag ) {
+			if (normflagx ) {
+				printf("i j f: %d %d %d\n",i,j,normflagx);
 				normc=ker_norm[ker_s*(ker_hsize + offs_u + offs_d) +  ker_hsize + offs_l + offs_r];
-				accum = accum/normc;
+				accum = accum*normc;
 			}
 			
 			linebuf[line_idx + j] = (uint16_t)accum;

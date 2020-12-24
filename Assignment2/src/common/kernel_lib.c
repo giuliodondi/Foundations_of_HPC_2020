@@ -189,7 +189,7 @@ void get_kernel_normalisations(kernel_t* k) {
 				}
 
 			}
-			kernel_norm[ker_s*(ker_hsize + offs_u + offs_d) +  ker_hsize + offs_l + offs_r] = normc;
+			kernel_norm[ker_s*(ker_hsize + offs_u + offs_d) +  ker_hsize + offs_l + offs_r] = 1/normc;
 				
 		}
 	}
