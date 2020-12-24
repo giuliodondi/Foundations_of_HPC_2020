@@ -38,10 +38,7 @@ int main( int argc, char **argv )
 		return -1;
 	}
 	
-	
-	//for (int i = 0; i < kernel_ptr.size*kernel_ptr.size;++i) {
-	//	printf("normc %f\n",kernel_ptr.kernorm[i] );	
-	//}
+
 	
 
 	if (read_pgm( &image , infile)== -1 ) {

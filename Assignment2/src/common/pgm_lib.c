@@ -137,17 +137,11 @@ char read_pgm( pgm* input_img, const char *image_name) {
 	
 	if ( ( input_img->maxval > 255 ) && I_M_LITTLE_ENDIAN) {
 		for (unsigned int i=0; i<elements; ++i) {
-			
 			((uint16_t*) input_img->data)[i] = swap(  ((uint16_t*) input_img->data)[i] );
-			
 		}
-		
 	}
 		
-		
-		
-		
-	
+
 	
 	fclose(image_file);
 	return 0;
@@ -156,26 +150,6 @@ char read_pgm( pgm* input_img, const char *image_name) {
 
 
 
-//void swap_image( void *image, int xsize, int ysize, int maxval )
-///*
-// * This routine swaps the endianism of the memory area pointed
-// * to by ptr, by blocks of 2 bytes
-// *
-// */
-//{
-//  if ( maxval > 255 )
-//    {
-//      // pgm files has the short int written in
-//      // big endian;
-//      // here we swap the content of the image from
-//      // one to another
-//      //
-//      unsigned int size = xsize * ysize;
-//      for (unsigned int i = 0; i < size; i+= 2 )
-//  	((unsigned short int*)image)[i] = swap(((unsigned short int*)image)[i]);
-//    }
-//  return;
-//}
 
 void copy_pgm( pgm *image1, pgm* image2) {
 	

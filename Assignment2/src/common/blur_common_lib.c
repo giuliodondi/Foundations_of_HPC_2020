@@ -13,6 +13,11 @@ int min( const int a, const int b) {
 	else {return b;}
 }
 
+int max( const int a, const int b) {
+	if (a>b) {return a;}
+	else {return b;}
+}
+
 void print_usage(char **argv) {
 	printf("Usage: %s -input input_img.pgm -kernel_type t -kernel-size s (optional) -output output_img.pgm -kernel-weight w.\n",argv[0]);
 }

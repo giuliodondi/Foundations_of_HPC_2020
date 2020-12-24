@@ -6,8 +6,10 @@ KER_TYPE=0
 KER_SIZE=31
 KER_WGHT=0.5
 
-
-
+VALGRINDCMD='valgrind'
+PERFCMD='perf stat -e task-clock,cycles,instructions,cache-references,cache-misses'
+MPICMD='mpirun -np'
+EXE='./blur.x' 
 
 #check for missing required arguments
 if [[ $# -eq 0 ]]
@@ -21,25 +23,32 @@ then
 		echo "-valgr | valgr : will run the program under valgrind"
 else
 FNAME=$1
+CMD="$EXE -input ${FNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}"
 shift
+while [[ $# -gt 0 ]]
+do
 case $1 in 
 	-make|make)
 		shift
 		make clean
-		make "$@"
-		./blur.x -input ${FNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}
+		make "$1"
 	;;
 	-perf|perf)
-		perf stat -e task-clock,cycles,instructions,cache-references,cache-misses \
-		./blur.x -input ${FNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}
+		CMD="$PERFCMD $CMD"
 	;;
 	-valgrind|valgrind)
-		valgrind ./blur.x -input ${FNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}
-		exit 0
+		CMD="$VALGRINDCMD $CMD"
 	;;
-	*)
-		./blur.x -input ${FNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}
+	-mpi|mpi)
+		shift
+		echo $1
+		CMD="$MPICMD $1 $CMD"
+	;;
+	-serial|serial)
 	;;
 esac
+shift
+done
 fi
-
+echo ${CMD}
+eval ${CMD}

@@ -183,7 +183,6 @@ void pgm_blur_linebuf(  pgm* input_img , const kernel_t* k) {
 			//which is always 1, we skip these calculations
 			
 			if (normflagx ) {
-				printf("i j f: %d %d %d\n",i,j,normflagx);
 				normc=ker_norm[ker_s*(ker_hsize + offs_u + offs_d) +  ker_hsize + offs_l + offs_r];
 				accum = accum*normc;
 			}
@@ -326,7 +325,6 @@ void pgm_blur_linebuf_unrol(  pgm* input_img , const kernel_t* k) {
 			//which is always 1, we skip these calculations
 			
 			if (normflagx ) {
-				printf("i j f: %d %d %d\n",i,j,normflagx);
 				normc=ker_norm[ker_s*(ker_hsize + offs_u + offs_d) +  ker_hsize + offs_l + offs_r];
 				accum = accum*normc;
 			}

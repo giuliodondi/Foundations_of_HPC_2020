@@ -112,22 +112,6 @@ int main( int argc, char **argv )
 	printf("Average runtime : %f s \n", avg_time/NITER );
 	
 	
-	printf("running the line-buffered + unrolling 3x algorithm %d times.\n", NITER);
-	
-	avg_time = 0;
-	for (int n = 0; n< NITER; ++n) {
-		copy_pgm( &original_image, &image) ;
-		clock_t begin = clock();
-   		pgm_blur_linebuf_unrol( &image, &kernel_ptr );
-		clock_t end = clock();
-		avg_time += (double)(end - begin) / CLOCKS_PER_SEC ;
-	}
-	
-	printf("Average runtime : %f s \n", avg_time/NITER );
-	
-	
-	
-
 
         
    
