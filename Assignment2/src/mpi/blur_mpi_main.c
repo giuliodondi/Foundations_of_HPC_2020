@@ -208,7 +208,7 @@ int main( int argc, char **argv )
 		tmp = masterlines + halowidth;
 		for (int p=1;p < nprocs; ++p) {
 			buf_idx = tmp*original_image.width*img_bytes;
-			MPI_Recv(&original_image.data[buf_idx] , childbuf_size , MPI_UINT8_T, p, recvtag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);	
+			//MPI_Recv(&original_image.data[buf_idx] , childbuf_size , MPI_UINT8_T, p, recvtag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);	
 			printf("Master has received from process %d.\n", p);
 			tmp += childlines - 2*halowidth;	
 		}
@@ -280,7 +280,7 @@ int main( int argc, char **argv )
 		tmp = halowidth*local_image.width*img_bytes;
 		//trim off the top and bottom halos from the total size
 		img_size -= 2*tmp;
-		MPI_Send(&local_image.data[tmp], img_size, MPI_UINT8_T, master, recvtag, MPI_COMM_WORLD);
+		//MPI_Send(&local_image.data[tmp], img_size, MPI_UINT8_T, master, recvtag, MPI_COMM_WORLD);
 		
 	}
 		

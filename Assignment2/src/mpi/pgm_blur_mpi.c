@@ -63,7 +63,7 @@ void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const uint8_t* halos) 
 	
 	register int offs_l, offs_r, offs_u, offs_d;
 	register double accum, normc;
-	register uint8_t normflag=0;
+	register uint8_t normflagx,normflagy;
 
 	
 	
@@ -78,14 +78,14 @@ void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const uint8_t* halos) 
 		}
 		
 		//are we close to the left/right edges?
-		normflag = ( (i<ker_hsize) || (i>=(ydim - ker_hsize) ) );
+		normflagy = ( (i<ker_hsize) || (i>=(ydim - ker_hsize) ) );
 		
 		for (int j=bound_l; j<bound_r; ++j) {
 			
 			//printf("i j : %d %d\n",i,j);
 			
 			//are we close to the top/bottom edges?
-			normflag += ( (j<ker_hsize) || (j>=(xdim - ker_hsize) ) );
+			normflagx = normflagy + ( (j<ker_hsize) || (j>=(xdim - ker_hsize) ) );
 			
 			/*
 			general code to stay within the boundaries of the image
@@ -140,9 +140,9 @@ void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const uint8_t* halos) 
 			//if the kernel is fully within the borders the indices would point to the central value
 			//which is always 1, we skip these calculations
 			
-			if (normflag ) {
+			if (normflagx ) {
 				normc=ker_norm[ker_s*(ker_hsize + offs_u + offs_d) +  ker_hsize + offs_l + offs_r];
-				accum = accum/normc;
+				accum = accum*normc;
 			}
 			
 			linebuf[line_idx + j - bound_l] = (uint16_t)accum;
