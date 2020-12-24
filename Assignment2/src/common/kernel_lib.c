@@ -42,8 +42,7 @@ int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned i
 	
 	k->kernorm = (double*)calloc( ker_s*ker_s , sizeof(double));
 	get_kernel_normalisations(k);
-	
-	printf("Kernel initialised.\n");
+
 	
 	return 0;
 }

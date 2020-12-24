@@ -8,7 +8,7 @@ COMMON_OBJ = src/common/blur_common_lib.o  src/common/pgm_lib.o src/common/kerne
 SERIAL_OBJ = src/serial/blur_serial_main.o src/serial/pgm_blur_serial.o
 SERIALTEST_OBJ = src/serial/blur_serial_main_perftest.o src/serial/pgm_blur_serial.o
 OPENMP_OBJ =
-MPI_OBJ = src/mpi/blur_mpi_main.o src/mpi/pgm_blur_mpi.o
+MPI_OBJ = src/mpi/blur_mpi_main.o src/mpi/blur_mpi_lib.o
 
 
 
