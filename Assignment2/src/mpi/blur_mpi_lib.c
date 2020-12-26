@@ -1,12 +1,47 @@
 #include <pgm.h>
 #include <kernel_t.h>
+#include <img_cell.h>
 #include <common_headers.h>
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <math.h>
 
 
+//one-dimensional image splitting
+void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, int width, int height, char img_bytes, int halowidth) {
+	
+	int childlines = ceil(((float)height)/((float)nprocs) );
+	int masterlines = height - (nprocs - 1)*childlines;
+
+	proc_cell->width = width;
+	if (proc_id == 0) {
+		proc_cell->idx=0;
+		
+		proc_cell->height = masterlines + halowidth;
+		proc_cell->halos[0] = 0;
+		proc_cell->halos[1] = 0;
+		proc_cell->halos[2] = 0;
+		proc_cell->halos[3] = 1;
+		
+	}else {
+		proc_cell->idx = width*( masterlines + (proc_id - 1)*childlines - halowidth)*img_bytes;
+		proc_cell->height = childlines + halowidth;
+		proc_cell->halos[0] = 0;
+		proc_cell->halos[1] = 1;
+		proc_cell->halos[2] = 0;
+		proc_cell->halos[3] = 0;
+		if (proc_id < (nprocs - 1)) {
+			proc_cell->height += halowidth;
+			proc_cell->halos[3] = 1;
+		}
+		
+	}
+	proc_cell->size = proc_cell->width*proc_cell->height*img_bytes;
+	
+}
 
 
 
