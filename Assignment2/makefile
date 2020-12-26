@@ -1,4 +1,5 @@
 COMPILER = gcc
+MPI_COMPILER = mpicc 
 EXE_NAME = blur.x
 FLAGS = -Wall -Wextra  -march=native -O3
 INCLUDE = -I src/include/
@@ -7,7 +8,7 @@ COMMON_OBJ = src/common/blur_common_lib.o  src/common/pgm_lib.o src/common/kerne
 SERIAL_OBJ = src/serial/blur_serial_main.o src/serial/pgm_blur_serial.o
 SERIALTEST_OBJ = src/serial/blur_serial_main_perftest.o src/serial/pgm_blur_serial.o
 OPENMP_OBJ =
-MPI_OBJ =
+MPI_OBJ = src/mpi/blur_mpi_main.o src/mpi/pgm_blur_mpi.o
 
 
 
@@ -27,7 +28,7 @@ openmp: $(COMMON_OBJ) $(OPENMP_OBJ)
 	$(COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
 
 mpi: $(COMMON_OBJ) $(MPI_OBJ)
-	$(COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
+	$(MPI_COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
 
 clean:
 	rm -rf $(SERIAL_OBJ) $(SERIALTEST_OBJ) $(COMMON_OBJ) $(OPENMP_OBJ) $(MPI_OBJ) $(EXE_NAME) $(MOD)
@@ -42,8 +43,13 @@ clean:
 $(MPI_EXE_NAME): $(MPI_OBJ) $(COMMON_OBJ)
 	$(COMPILER) $^ -o $@ $(FLAGS) -lm
 	
+src/mpi/blur_mpi_main.o : src/mpi/blur_mpi_main.c
+	$(MPI_COMPILER) -c $< -o $@ $(FLAGS) $(INCLUDE)
+	
 %.o: %.c
 	$(COMPILER) -c $< -o $@ $(FLAGS) $(INCLUDE)
+
+
 	
 
 main.o: main.c

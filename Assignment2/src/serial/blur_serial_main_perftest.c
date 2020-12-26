@@ -15,6 +15,7 @@
 void pgm_blur_copy(  pgm* input_img , kernel_t* k);
 void pgm_blur_linebuf(  pgm* input_img , kernel_t* k);
 void pgm_blur_linebuf_unrol(  pgm* input_img , kernel_t* k);
+void pgm_blur_linebuf_unrol2(  pgm* input_img , kernel_t* k);
 
 
 int main( int argc, char **argv ) 
@@ -111,6 +112,7 @@ int main( int argc, char **argv )
 	
 	printf("Average runtime : %f s \n", avg_time/NITER );
 	
+
 	
 
         

@@ -7,11 +7,8 @@
 #include <stdint.h>
 
 
-
-
-
 void pgm_blur_copy(  pgm* input_img , const kernel_t* k) {
-	
+
 	
 	register const int xdim = input_img->width ;
 	register const int ydim = input_img->height ;
@@ -230,6 +227,8 @@ void pgm_blur_linebuf_unrol(  pgm* input_img , const kernel_t* k) {
 	register const int ker_hsize = ( k->size - 1)/2 ;
 	double* kernel = k->ker;
 	double* ker_norm = k->kernorm;
+
+	
 	
 	
 	uint16_t* image = (uint16_t*)input_img->data; 
@@ -288,7 +287,12 @@ void pgm_blur_linebuf_unrol(  pgm* input_img , const kernel_t* k) {
 			offs_r = min( ker_hsize, xdim1 - j );
 			offs_d = min( ker_hsize, ydim1 - i );
 			
+			//printf("offs_l : %d\n",offs_l);
+			//printf("offs_u : %d\n",offs_u);
+			//printf("offs_r : %d\n",offs_r);
+			//printf("offs_d : %d\n",offs_d);
 			
+
 			accum=0;
 			if (( offs_r - offs_l)%2) {
 				//this branch selects the odd-sized convolutions which can only happen if the normflag is enabled
@@ -318,6 +322,7 @@ void pgm_blur_linebuf_unrol(  pgm* input_img , const kernel_t* k) {
 				}	
 			}
 			
+			
 			//vignette renormalisation
 			//we use the normalisation matrix pre-computed and use the offsets variables
 			//to extract the right entry, which is the normalisation value
@@ -328,7 +333,6 @@ void pgm_blur_linebuf_unrol(  pgm* input_img , const kernel_t* k) {
 				normc=ker_norm[ker_s*(ker_hsize + offs_u + offs_d) +  ker_hsize + offs_l + offs_r];
 				accum = accum*normc;
 			}
-			
 			linebuf[line_idx + j] = (uint16_t)accum;
 		}
 	}
@@ -355,5 +359,11 @@ void pgm_blur_linebuf_unrol(  pgm* input_img , const kernel_t* k) {
 
 	
 }
+
+
+
+
+
+
 
 

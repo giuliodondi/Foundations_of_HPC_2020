@@ -112,7 +112,7 @@ void gaussian_kernel_simple(kernel_t* k) {
 }
 
 
-
+//FIXME
 //void gaussian_kernel(kernel_t* k) {
 //	
 //	int mid_idx = (ker_s-1)/2;
