@@ -24,7 +24,7 @@ serial: $(COMMON_OBJ)  $(SERIAL_OBJ)
 serialtest: $(COMMON_OBJ)  $(SERIALTEST_OBJ)
 	$(COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
 	
-	
+
 omp: $(COMMON_OBJ) $(OMP_OBJ) 
 	$(OMP_COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
 
@@ -35,6 +35,7 @@ clean:
 	rm -rf $(SERIAL_OBJ) $(SERIALTEST_OBJ) $(COMMON_OBJ) $(OMP_OBJ) $(MPI_OBJ) $(EXE_NAME) $(MOD)
 	
 .PHONY: clean default
+
 
 
 

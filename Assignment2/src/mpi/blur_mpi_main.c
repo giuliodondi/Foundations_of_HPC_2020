@@ -144,7 +144,9 @@ int main( int argc, char **argv )
 	
 	MPI_File out_file;
 	MPI_File_open(MPI_COMM_WORLD, outfile, MPI_MODE_CREATE | MPI_MODE_WRONLY,MPI_INFO_NULL, &out_file);
+
 	MPI_File_write_at(out_file,  my_data_offs, &local_image.data[trim_halo_1D( &proc_cell, local_image.pix_bytes, halowidth)]  , proc_cell.size_ , MPI_UINT8_T, &status);
+	
 	MPI_File_close(&out_file);
 	
 	write_time = MPI_Wtime() - write_time;
