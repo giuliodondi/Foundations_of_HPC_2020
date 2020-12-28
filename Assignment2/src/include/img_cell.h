@@ -3,10 +3,10 @@
 #define IMG_CELL_H
 
 typedef struct {
-	int width;
-	int height;
+	int size[2];
+	//int idx[2];
+	int size_;
 	int idx;
-	int size;
 	char halos[4];
 } img_cell;
 

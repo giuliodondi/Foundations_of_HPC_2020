@@ -15,7 +15,6 @@
 void pgm_blur_copy(  pgm* input_img , kernel_t* k);
 void pgm_blur_linebuf(  pgm* input_img , kernel_t* k);
 void pgm_blur_linebuf_unrol(  pgm* input_img , kernel_t* k);
-void pgm_blur_linebuf_unrol2(  pgm* input_img , kernel_t* k);
 
 
 int main( int argc, char **argv ) 
@@ -30,8 +29,9 @@ int main( int argc, char **argv )
 	char infile[80] = "";
 	char outfile[80] = "output.pgm";
 	
-	pgm  original_image ;
+	pgm  original_image = new_pgm();
 	kernel_t kernel_ptr;
+	long int header_offs=0;
 	
 
 	
@@ -43,21 +43,30 @@ int main( int argc, char **argv )
 	}
 	
 
-	if (read_pgm( &original_image , infile)== -1 ) {
+	//read the file header
+	if (read_pgm_header( &original_image , infile, &header_offs)== -1 ) {
 		printf("Aborting.\n");
 		clear_pgm( &original_image);
 		delete_kernel(&kernel_ptr);
 		return -1;
 	}
 	
+	//read the image data
+	if (read_pgm_data( &original_image , infile, &header_offs)== -1 ) {
+		printf("Aborting.\n");
+		clear_pgm( &original_image);
+		delete_kernel(&kernel_ptr);
+		return -1;
+	}
+	
+	
     
     printf("Input file \"%s\" has been read.\n",infile);
-	printf("The image is %d x %d.\n",original_image.width,original_image.height);
+	printf("The image is %d x %d.\n",original_image.size[0],original_image.size[1]);
 	
 	
-	pgm  image;
-	image.data=NULL;
-	
+	pgm  image = new_pgm();
+
 
 	
 	
@@ -116,8 +125,17 @@ int main( int argc, char **argv )
 	
 
         
-   
-	if ( write_pgm( &image, outfile)== -1 ) {
+    //write the file header
+	if (write_pgm_header( &image , outfile, &header_offs)== -1 ) {
+		printf("Aborting.\n");
+		clear_pgm( &image);
+		delete_kernel(&kernel_ptr);
+		return -1;
+	}
+	printf("the header is %li bytes.\n",header_offs);
+	
+	//write the image data
+	if (write_pgm_data( &image , outfile, &header_offs)== -1 ) {
 		printf("Aborting.\n");
 		clear_pgm( &image);
 		delete_kernel(&kernel_ptr);
@@ -126,7 +144,7 @@ int main( int argc, char **argv )
     printf("Output file \"%s\" has been written.\n",outfile);
 	
 	
-
+	clear_pgm( &original_image);
 	clear_pgm( &image);
 	delete_kernel(&kernel_ptr);
     return 0;
