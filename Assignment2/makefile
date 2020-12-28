@@ -2,7 +2,7 @@ COMPILER = gcc
 MPI_COMPILER = mpicc 
 OMP_COMPILER = gcc -fopenmp 
 EXE_NAME = blur.x
-FLAGS = -Wall -Wextra  -march=native -O3
+FLAGS = -Wall -Wextra  -march=native -O3 -g3
 INCLUDE = -I src/include/
 
 COMMON_OBJ = src/common/blur_common_lib.o  src/common/pgm_lib.o src/common/kernel_lib.o 
