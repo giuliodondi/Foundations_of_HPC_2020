@@ -2,6 +2,8 @@ COMPILER = gcc
 MPI_COMPILER = mpicc 
 OMP_COMPILER = gcc -fopenmp 
 EXE_NAME = blur.x
+MPI_EXE_NAME = blur_mpi.x
+OMP_EXE_NAME = blur_omp.x
 FLAGS = -Wall -Wextra  -march=native -O3 -g3
 INCLUDE = -I src/include/
 
@@ -26,13 +28,13 @@ serialtest: $(COMMON_OBJ)  $(SERIALTEST_OBJ)
 	
 	
 omp: $(COMMON_OBJ) $(OMP_OBJ) 
-	$(OMP_COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
+	$(OMP_COMPILER) $^ -o $(OMP_EXE_NAME) $(FLAGS) -lm
 
 mpi: $(COMMON_OBJ) $(MPI_OBJ)
-	$(MPI_COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
+	$(MPI_COMPILER) $^ -o $(MPI_EXE_NAME) $(FLAGS) -lm
 
 clean:
-	rm -rf $(SERIAL_OBJ) $(SERIALTEST_OBJ) $(COMMON_OBJ) $(OMP_OBJ) $(MPI_OBJ) $(EXE_NAME) $(MOD)
+	rm -rf $(SERIAL_OBJ) $(SERIALTEST_OBJ) $(COMMON_OBJ) $(OMP_OBJ) $(MPI_OBJ) $(EXE_NAME) $(OMP_EXE_NAME) $(MPI_EXE_NAME) $(MOD)
 	
 .PHONY: clean default
 

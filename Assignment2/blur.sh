@@ -9,10 +9,15 @@ KER_WGHT=0.5
 
 #VALGRINDCMD='valgrind --leak-check=full --show-leak-kinds=all --suppressions=/usr/share/openmpi/openmpi-valgrind.supp'
 VALGRINDCMD='valgrind'
-#PERFCMD='perf stat -e task-clock,cycles,instructions,cache-references,cache-misses'
-PERFCMD='perf record -e cache-misses'
+PERFCMD='perf stat -e task-clock,cycles,instructions,cache-references,cache-misses'
+#PERFCMD='perf record -e cache-misses'
 MPICMD='mpirun -np'
+MPIFLAG=0
+MPI_PROCS=0
+CMD=''
 EXE='./blur.x' 
+MPI_EXE='./blur_mpi.x' 
+OMP_EXE='./blur_omp.x' 
 
 #check for missing required arguments
 if [[ $# -eq 0 ]]
@@ -26,7 +31,7 @@ then
 		echo "-valgr | valgr : will run the program under valgrind"
 else
 FNAME=$1
-CMD="$EXE -input ${FNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}"
+ARGS="-input ${FNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}"
 shift
 while [[ $# -gt 0 ]]
 do
@@ -43,20 +48,27 @@ case $1 in
 		CMD="$VALGRINDCMD $CMD"
 	;;
 	-mpi|mpi)
+		MPIFLAG=1
 		shift
-		echo $1
-		CMD="$MPICMD $1 $CMD"
+		MPI_PROCS=$1
+		CMD="$MPI_EXE $ARGS"
 	;;
 	-omp|omp)
 		shift
-		echo $1
 		export OMP_NUM_THREADS=$1
+		export OMP_PROC_BIND=true
+		CMD="$OMP_EXE $ARGS"
 	;;
 	-serial|serial)
+		CMD="$EXE $ARGS"
 	;;
 esac
 shift
 done
+fi
+if [[ $MPIFLAG -eq 1 ]]
+then
+	CMD="$MPICMD $MPI_PROCS $CMD"
 fi
 echo ${CMD}
 eval ${CMD}
