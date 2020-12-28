@@ -14,31 +14,32 @@
 #define USE MPI
 
 //blurring function headers
-void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, int width, int height, char img_bytes, int halowidth) ;
-void pgm_blur_serial(  pgm* input_img , kernel_t* k);
+void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, pgm* image, int halowidth) ;
+int trim_halo_1D( img_cell* proc_cell, char img_bytes, int halowidth );
 void pgm_blur_halo(  pgm* input_img , kernel_t* k,  const char* halos);
-
 
 
 int main( int argc, char **argv ) 
 { 
 	//mpi common variables
 	int nprocs, proc_id;
-	int collecttag = 123;
+	MPI_Status status;
+	MPI_Offset my_data_offs;
 
 	//initialise the MPI communicators
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &proc_id);
 	
+	
 	//variables common to all processes;
-	double start_t, elapsed;
-	pgm  local_image;
-	pgm  original_image ;
-	kernel_t kernel_ptr;
-	char img_bytes;
+	double header_time, read_time, blur_time, write_time;
+	pgm  local_image = new_pgm();
+	pgm  original_image = new_pgm();
+	kernel_t kernel;
 	img_cell proc_cell;
 	int halowidth;
+	long int header_offs=0;
 	
 	
 	//read command-line arguments and initialise the variables
@@ -46,90 +47,117 @@ int main( int argc, char **argv )
 	char infile[80] = "";
 	char outfile[80] = "output.pgm";
 
-	if (read_params_initialise_kernel(argc, argv, infile, outfile, &kernel_ptr) == -1 ) {
+	if (read_params_initialise_kernel(argc, argv, infile, outfile, &kernel) == -1 ) {
 		printf("Aborting.\n");
-		clear_pgm( &original_image);
-		delete_kernel(&kernel_ptr);
+		delete_kernel(&kernel);
 		return -1;
+		MPI_Finalize();
 	}
+	halowidth = (kernel.size - 1)/2;
 	
-	
-	
-	
-	if (read_pgm( &original_image , infile)== -1 ) {
-		printf("Aborting.\n");
-		clear_pgm( &original_image);
-		delete_kernel(&kernel_ptr);
-		return -1;
-	}
-
-	img_bytes  = (1 + (original_image.maxval > 255));
-	halowidth = (kernel_ptr.size - 1)/2;
-
-	
-	
-	
-	//build the cells accountign for the halo above and below the cells
-	get_cell_1D( nprocs, proc_id, &proc_cell, original_image.width, original_image.height, img_bytes, halowidth);
-	
-	printf("Process %d will process %d rows, %d cols of the image.\n", proc_id, proc_cell.height, proc_cell.width );
-	
-	//initialise the working image
-	//get the pointer to the beginnig of the memory section
-	local_image.width = proc_cell.width;
-	local_image.height = proc_cell.height;
-	local_image.maxval = original_image.maxval;
-	local_image.data = &original_image.data[proc_cell.idx];
-		
-	start_t = MPI_Wtime();
-	pgm_blur_halo( &local_image, &kernel_ptr , proc_cell.halos);
-	elapsed = MPI_Wtime() - start_t;
-
-	printf("Wall time for process %d : %f s.\n",proc_id,elapsed);
-	
-	
-		
+	//only master reads the file header
 	if (proc_id == 0) {
-
-		//retrieve data directly in the right place
-		//update the now-dummy cell variable with the information about the process we're receiving from
-		for (int p=1;p < nprocs; ++p) {
-			get_cell_1D( nprocs, p, &proc_cell, original_image.width, original_image.height, img_bytes, 0);
-			MPI_Recv(&original_image.data[proc_cell.idx] , proc_cell.size , MPI_UINT8_T, p, collecttag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);	
-			printf("Master has received from process %d.\n", p);
-		}
-		
-		
-		//write the image
-		if ( write_pgm( &original_image, outfile)== -1 ) {
+		header_time = MPI_Wtime();
+		//read the file header
+		if (read_pgm_header( &original_image , infile, &header_offs)== -1 ) {
 			printf("Aborting.\n");
 			clear_pgm( &original_image);
-			delete_kernel(&kernel_ptr);
+			clear_pgm( &local_image);
+			delete_kernel(&kernel);
+			MPI_Finalize();
 			return -1;
 		}
-	   	printf("Master has written output file \"%s\".\n",outfile);
-
+		header_time = MPI_Wtime() - header_time;
+		printf("Header read time for process %d : %f s.\n",proc_id,header_time);
 	}
-	else {
-		
-		//prepare to send back the data without the halos
-		//update the cells properties removing the halos since we don't send them back
-		get_cell_1D( nprocs, proc_id, &proc_cell, original_image.width, original_image.height, img_bytes, 0);
-
-		MPI_Send(&original_image.data[proc_cell.idx], proc_cell.size, MPI_UINT8_T, 0, collecttag, MPI_COMM_WORLD);
-		
-	}
-		
+	MPI_Bcast(&header_offs, 1, MPI_OFFSET, 0, MPI_COMM_WORLD);
+	
+	//send info on the incoming image metadata
+	MPI_Bcast(&original_image.size, 2, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&original_image.maxval, 1, MPI_INT, 0, MPI_COMM_WORLD);
+	MPI_Bcast(&original_image.pix_bytes, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	
 	
+	
+	//build the cells accounting for the halo above and below the cells
+	get_cell_1D( nprocs, proc_id, &proc_cell, &original_image, halowidth);
+	
+	printf("Process %d will process %d rows, %d cols of the image.\n", proc_id, proc_cell.size[1], proc_cell.size[0] );
+	
+	//initialise the local image
+	local_image.size[0] = proc_cell.size[0];
+	local_image.size[1] = proc_cell.size[1];
+	local_image.maxval = original_image.maxval;
+	local_image.pix_bytes = original_image.pix_bytes;
+	//allocte data for the local image
+	local_image.data = (uint8_t*)malloc( proc_cell.size_*sizeof(uint8_t) );
+	
+	
+	//parallel file read
+	read_time = MPI_Wtime();
+	my_data_offs = header_offs + proc_cell.idx;
+	
+	MPI_File in_file;
+	MPI_File_open(MPI_COMM_WORLD, infile, MPI_MODE_RDONLY,MPI_INFO_NULL, &in_file);
+	MPI_File_iread_at(in_file,  my_data_offs, &local_image.data[0]  , proc_cell.size_ , MPI_UINT8_T, &status);
+	MPI_File_close(&in_file);
+	
+	endian_swap(&local_image);
+	
+	read_time = MPI_Wtime() - read_time;
+	
+	printf("Data read time for process %d : %f s.\n",proc_id,read_time);
+	
+	
+	//blurring
+	blur_time = MPI_Wtime();
+	pgm_blur_halo( &local_image, &kernel , proc_cell.halos);
+	blur_time = MPI_Wtime() - blur_time;
 
+	printf("Blur time for process %d : %f s.\n",proc_id,blur_time);
+	
+	
+	if (proc_id == 0) {
+		header_time = MPI_Wtime();
+		//write the file header
+		if (write_pgm_header( &original_image , outfile, &header_offs)== -1 ) {
+			printf("Aborting.\n");
+			clear_pgm( &original_image);
+			clear_pgm( &local_image);
+			delete_kernel(&kernel);
+			MPI_Finalize();
+			return -1;
+		}
+		header_time = MPI_Wtime() - header_time;
+		printf("Header write time for process %d : %f s.\n",proc_id,header_time);
+	}
+	MPI_Bcast(&header_offs, 1, MPI_OFFSET, 0, MPI_COMM_WORLD);
+	
+	//update cells setting halo width to zero
+	get_cell_1D( nprocs, proc_id, &proc_cell, &original_image, 0);
+	my_data_offs = header_offs + proc_cell.idx;
+	
+	
+	//parallel write
+	write_time = MPI_Wtime();
+	endian_swap(&local_image);
+	
+	MPI_File out_file;
+	MPI_File_open(MPI_COMM_WORLD, outfile, MPI_MODE_CREATE | MPI_MODE_WRONLY,MPI_INFO_NULL, &out_file);
+	MPI_File_write_at(out_file,  my_data_offs, &local_image.data[trim_halo_1D( &proc_cell, local_image.pix_bytes, halowidth)]  , proc_cell.size_ , MPI_UINT8_T, &status);
+	MPI_File_close(&out_file);
+	
+	write_time = MPI_Wtime() - write_time;
+	
+	printf("Data write time for process %d : %f s.\n",proc_id,write_time);
+	
+	delete_kernel(&kernel);
 	clear_pgm( &original_image);
-	//the local image points to the memory location of the original image which is free
-	local_image.data = NULL;
-	delete_kernel(&kernel_ptr);
 	clear_pgm( &local_image);
 	MPI_Finalize();
 	return 0;
 	
 
 } 
+
+

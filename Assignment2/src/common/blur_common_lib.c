@@ -16,7 +16,6 @@ int max( const int a, const int b) {
 }
 
 
-
 void print_usage(char **argv) {
 	printf("Usage: %s -input input_img.pgm -kernel_type t -kernel-size s (optional) -output output_img.pgm -kernel-weight w.\n",argv[0]);
 }
@@ -44,8 +43,8 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 		else if (strcmp(argv[arg], "-kernel-size")==0 ) {
 			kernel_size = atoi(argv[arg+1]);
 			//check kernel size is odd	
-			if ( (kernel_size%2)==0) {
-				printf("Error: Kernel size must be a positive odd integer.\n");
+			if ( (kernel_size%2)==0 || (kernel_size<3)) {
+				printf("Error: Kernel size must be an odd integer 3 or greater.\n");
 				return -1;
 			}
 		}

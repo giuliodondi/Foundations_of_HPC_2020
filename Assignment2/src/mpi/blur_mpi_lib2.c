@@ -19,7 +19,8 @@ void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, pgm* image, int 
 	proc_cell->size[0] = image->size[0];
 	
 	if (proc_id == 0) {
-		proc_cell->idx=0;
+		proc_cell->idx[0]=0;
+		proc_cell->idx[1]=0;
 		
 		proc_cell->size[1] = masterlines;
 		proc_cell->halos[0] = 0;
@@ -36,7 +37,8 @@ void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, pgm* image, int 
 		}
 		
 	}else {
-		proc_cell->idx = image->size[0]*( masterlines + (proc_id - 1)*childlines - halowidth)*image->pix_bytes;
+		proc_cell->idx[0]= 0;
+		proc_cell->idx[1]= masterlines + (proc_id - 1)*childlines - halowidth;
 		
 		proc_cell->size[1] = childlines + halowidth;
 		proc_cell->halos[0] = 0;
@@ -52,7 +54,6 @@ void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, pgm* image, int 
 	proc_cell->size_ = proc_cell->size[0]*proc_cell->size[1]*image->pix_bytes;
 	
 }
-
 
 
 //returns the idx in the local cell buffer of the first "real" image pixel (i.e. not halo)
@@ -205,6 +206,8 @@ void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const uint8_t* halos) 
 		}
 	}
 	
+
+	
 	//the buffer is full of lines still to write
 	//but the next buffer line to write will be at an arbitrary index
 	
@@ -225,6 +228,7 @@ void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const uint8_t* halos) 
 	
 
 	free(linebuf);
+	//printf("Blurring complete.\n");
 	return ;
 
 	

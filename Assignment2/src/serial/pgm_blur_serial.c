@@ -10,10 +10,10 @@
 void pgm_blur_copy(  pgm* input_img , const kernel_t* k) {
 
 	
-	register const int xdim = input_img->width ;
-	register const int ydim = input_img->height ;
-	register const int xdim1 = input_img->width - 1;
-	register const int ydim1 = input_img->height  - 1;
+	register const int xdim = input_img->size[0] ;
+	register const int ydim = input_img->size[1] ;
+	register const int xdim1 = input_img->size[0] - 1;
+	register const int ydim1 = input_img->size[1]  - 1;
 
 	
 	register const int ker_s = k->size ;
@@ -96,10 +96,10 @@ void pgm_blur_copy(  pgm* input_img , const kernel_t* k) {
 void pgm_blur_linebuf(  pgm* input_img , const kernel_t* k) {
 	
 	
-	register const int xdim = input_img->width ;
-	register const int ydim = input_img->height ;
-	register const int xdim1 = input_img->width - 1;
-	register const int ydim1 = input_img->height  - 1;
+	register const int xdim = input_img->size[0] ;
+	register const int ydim = input_img->size[1] ;
+	register const int xdim1 = input_img->size[0] - 1;
+	register const int ydim1 = input_img->size[1]  - 1;
 
 	
 	register const int ker_s = k->size ;
@@ -217,10 +217,10 @@ void pgm_blur_linebuf(  pgm* input_img , const kernel_t* k) {
 void pgm_blur_linebuf_unrol(  pgm* input_img , const kernel_t* k) {
 	
 	
-	register const int xdim = input_img->width ;
-	register const int ydim = input_img->height ;
-	register const int xdim1 = input_img->width - 1;
-	register const int ydim1 = input_img->height  - 1;
+	register const int xdim = input_img->size[0] ;
+	register const int ydim = input_img->size[1] ;
+	register const int xdim1 = input_img->size[0] - 1;
+	register const int ydim1 = input_img->size[1]  - 1;
 
 	
 	register const int ker_s = k->size ;

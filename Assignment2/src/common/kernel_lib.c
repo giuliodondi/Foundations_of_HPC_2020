@@ -5,13 +5,49 @@
 #include <stdio.h>
 #include <math.h>
 #include <stdint.h>
+#include <string.h>
 
 
+int8_t alloc_kernel( kernel_t* k, const unsigned int ker_s ) {
+	
+	k->size = ker_s;
+	int ker_size2 = ker_s*ker_s;
+	k->ker = (double*)calloc( ker_size2 , sizeof(double));	
+	k->kernorm = (double*)calloc( ker_size2 , sizeof(double));
+	if ( k->ker && k->kernorm ) {
+		return 0;
+	} else {
+		return -1;	
+	}
+	
+}
+
+
+int8_t copy_kernel(kernel_t* new_ker, kernel_t *old_ker) {
+	
+	if (alloc_kernel(new_ker, old_ker->size)== -1 ) {
+		return -1;
+	}
+	
+	int ker_size2 = old_ker->size*old_ker->size;
+	memcpy( new_ker->ker , old_ker->ker , ker_size2*sizeof(double) );
+	memcpy( new_ker->kernorm , old_ker->kernorm , ker_size2*sizeof(double) );
+	return 0;
+}
+
+
+
+void delete_kernel( kernel_t* k) {
+	free(k->ker);
+	free(k->kernorm);
+	k->ker=NULL;
+	k->kernorm=NULL;
+	k->size=0;
+}
 
 int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned int ker_s, const float kernel_weight) {
 	
-	k->size = ker_s;
-	k->ker = (double*)calloc( ker_s*ker_s , sizeof(double));
+	alloc_kernel( k , ker_s);
 	
 	//initialise the kernel matrix
 	switch  (kernel_type) {
@@ -40,8 +76,8 @@ int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned i
 			
 	}
 	
-	k->kernorm = (double*)calloc( ker_s*ker_s , sizeof(double));
-	get_kernel_normalisations(k);
+	
+	kernel_normalisations(k);
 
 	
 	return 0;
@@ -113,38 +149,9 @@ void gaussian_kernel_simple(kernel_t* k) {
 }
 
 
-//FIXME
-//void gaussian_kernel(kernel_t* k) {
-//	
-//	int mid_idx = (ker_s-1)/2;
-//	
-//	float* kernel_matrix = (float*)calloc( ker_s*ker_s , sizeof(float));
-//	
-//	float stdev = 2*pow( (ker_s/2) ,2);
-//	int x2,y2;
-//	float newval,norm;
-//	for ( unsigned int i=0; i<ker_s; ++i) {
-//		for (unsigned int j=0; j<ker_s; ++j) {
-//			x2 = pow( (i - mid_idx),2);
-//			y2 = pow( (j - mid_idx),2);
-//			newval = (float) exp( -(x2 + y2)/stdev  )/ (M_PI*stdev);
-//			norm+= newval;
-//			kernel_matrix[i*ker_s + j] =  newval;
-//		}
-//	}
-//	for (int i=0; i<ker_s; ++i) {
-//		for (int j=0; j<ker_s; ++j) {
-//			//kernel_matrix[i*ker_s + j] = kernel_matrix[i*ker_s + j]/norm;
-//		}
-//	}
-//	
-//	
-//	k->ker = kernel_matrix;
-//	k->size = ker_s;
-//}
 
 
-void get_kernel_normalisations(kernel_t* k) {
+void kernel_normalisations(kernel_t* k) {
 	/*
 	calculates a matrix of normalisation constants to use vor vignetting removal
 	explanation : consider a 3x3 kernel and overlap its central point on the top edge and corners
@@ -196,10 +203,3 @@ void get_kernel_normalisations(kernel_t* k) {
 }
 
 
-void delete_kernel( kernel_t* k) {
-	free(k->ker);
-	free(k->kernorm);
-	k->ker=NULL;
-	k->kernorm=NULL;
-	k->size=0;
-}

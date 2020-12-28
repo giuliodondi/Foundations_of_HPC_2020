@@ -7,15 +7,19 @@
 //pgm struct definition
 typedef struct {
 	
-	int width;
-	int height;
 	int maxval;
+	int size[2];
+	uint8_t pix_bytes;
 	uint8_t* data;
 } pgm;
 
 
-char write_pgm( pgm *output_img, const char *image_name) ;
-char read_pgm( pgm* input_img, const char *image_name) ;
+pgm new_pgm();
+char write_pgm_header( pgm* input_img, const char *image_name, long int* header_offs);
+char write_pgm_data( pgm* input_img, const char *image_name, long int* skip_header_offs) ;
+char read_pgm_header( pgm* input_img, const char *image_name, long int* header_offs);
+char read_pgm_data( pgm* input_img, const char *image_name, long int* skip_header_offs) ;
+void endian_swap(pgm *image) ;
 void clear_pgm( pgm* image) ;
 void copy_pgm( pgm *image1, pgm* image2) ;
 

@@ -4,10 +4,13 @@ LC_ALL='en_US.UTF-8'
 
 KER_TYPE=0
 KER_SIZE=31
+
 KER_WGHT=0.5
 
+#VALGRINDCMD='valgrind --leak-check=full --show-leak-kinds=all --suppressions=/usr/share/openmpi/openmpi-valgrind.supp'
 VALGRINDCMD='valgrind'
-PERFCMD='perf stat -e task-clock,cycles,instructions,cache-references,cache-misses'
+#PERFCMD='perf stat -e task-clock,cycles,instructions,cache-references,cache-misses'
+PERFCMD='perf record -e cache-misses'
 MPICMD='mpirun -np'
 EXE='./blur.x' 
 
@@ -43,6 +46,11 @@ case $1 in
 		shift
 		echo $1
 		CMD="$MPICMD $1 $CMD"
+	;;
+	-omp|omp)
+		shift
+		echo $1
+		export OMP_NUM_THREADS=$1
 	;;
 	-serial|serial)
 	;;
