@@ -14,8 +14,8 @@
 #define USE MPI
 
 //blurring function headers
-void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, pgm* image, int halowidth) ;
-int trim_halo_1D( img_cell* proc_cell, char img_bytes, int halowidth );
+void get_cell_1D(const int nprocs, const int proc_id, img_cell* proc_cell, const pgm* image, const unsigned int* halowidth);
+int trim_halo_1D( const img_cell* proc_cell, const char img_bytes, const unsigned int* halowidth );
 void pgm_blur_halo(  pgm* input_img , kernel_t* k,  const char* halos);
 
 
@@ -38,8 +38,8 @@ int main( int argc, char **argv )
 	pgm  original_image = new_pgm();
 	kernel_t kernel;
 	img_cell proc_cell;
-	int halowidth;
 	long int header_offs=0;
+	unsigned int halowidth0[2] = {0,0};
 	
 	
 	//read command-line arguments and initialise the variables
@@ -53,7 +53,7 @@ int main( int argc, char **argv )
 		return -1;
 		MPI_Finalize();
 	}
-	halowidth = (kernel.size - 1)/2;
+	
 	
 	//only master reads the file header
 	if (proc_id == 0) {
@@ -80,7 +80,7 @@ int main( int argc, char **argv )
 	
 	
 	//build the cells accounting for the halo above and below the cells
-	get_cell_1D( nprocs, proc_id, &proc_cell, &original_image, halowidth);
+	get_cell_1D( nprocs, proc_id, &proc_cell, &original_image, kernel.halfsize);
 	
 	printf("Process %d will process %d rows, %d cols of the image.\n", proc_id, proc_cell.size[1], proc_cell.size[0] );
 	
@@ -135,7 +135,7 @@ int main( int argc, char **argv )
 	MPI_Bcast(&header_offs, 1, MPI_OFFSET, 0, MPI_COMM_WORLD);
 	
 	//update cells setting halo width to zero
-	get_cell_1D( nprocs, proc_id, &proc_cell, &original_image, 0);
+	get_cell_1D( nprocs, proc_id, &proc_cell, &original_image, halowidth0);
 	my_data_offs = header_offs + ( original_image.size[0]*proc_cell.idx[1]+ proc_cell.idx[0])*original_image.pix_bytes;
 	
 	//parallel write
@@ -145,7 +145,7 @@ int main( int argc, char **argv )
 	MPI_File out_file;
 	MPI_File_open(MPI_COMM_WORLD, outfile, MPI_MODE_CREATE | MPI_MODE_WRONLY,MPI_INFO_NULL, &out_file);
 
-	MPI_File_write_at(out_file,  my_data_offs, &local_image.data[trim_halo_1D( &proc_cell, local_image.pix_bytes, halowidth)]  , proc_cell.size_ , MPI_UINT8_T, &status);
+	MPI_File_write_at(out_file,  my_data_offs, &local_image.data[trim_halo_1D( &proc_cell, local_image.pix_bytes, kernel.halfsize)]  , proc_cell.size_ , MPI_UINT8_T, &status);
 	
 	MPI_File_close(&out_file);
 	

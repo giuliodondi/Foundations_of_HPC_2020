@@ -11,7 +11,7 @@
 
 
 //one-dimensional image splitting
-void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, pgm* image, int halowidth) {
+void get_cell_1D(const int nprocs, const int proc_id, img_cell* proc_cell, const pgm* image, const unsigned int* halowidth) {
 	
 	int childlines = ceil(((float)image->size[1])/((float)nprocs) );
 	int masterlines = image->size[1] - (nprocs - 1)*childlines;
@@ -30,7 +30,7 @@ void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, pgm* image, int 
 		//if there is just one worker it takes care of the entire image
 		//no halo needs to be included
 		if (nprocs>1 ) {
-			proc_cell->size[1] += halowidth;
+			proc_cell->size[1] += halowidth[1];
 			proc_cell->halos[3] = 1;
 		} else {
 			proc_cell->halos[3] = 0;
@@ -38,16 +38,15 @@ void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, pgm* image, int 
 		
 	}else {
 		proc_cell->idx[0]=0;
-		proc_cell->idx[1]=masterlines + (proc_id - 1)*childlines - halowidth;
-		//proc_cell->idx = image->size[0]*( masterlines + (proc_id - 1)*childlines - halowidth )*image->pix_bytes;
+		proc_cell->idx[1]=masterlines + (proc_id - 1)*childlines - halowidth[1];
 		
-		proc_cell->size[1] = childlines + halowidth;
+		proc_cell->size[1] = childlines + halowidth[1];
 		proc_cell->halos[0] = 0;
 		proc_cell->halos[1] = 1;
 		proc_cell->halos[2] = 0;
 		proc_cell->halos[3] = 0;
 		if (proc_id < (nprocs - 1)) {
-			proc_cell->size[1] += halowidth;
+			proc_cell->size[1] += halowidth[1];
 			proc_cell->halos[3] = 1;
 		}
 		
@@ -62,15 +61,15 @@ void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, pgm* image, int 
 //call this AFTER updating the cell parameters, i.e. the cell width /height values should 
 // exclude halos
 // this doesn't make a difference for the 1D splitting, it's for future compatibility
-int trim_halo_1D( img_cell* proc_cell, char img_bytes, int halowidth ) {
+int trim_halo_1D( const img_cell* proc_cell, const char img_bytes, const unsigned int* halowidth ) {
 	//width of the actual pixels plus left and right halo if present
-	int w = halowidth*(proc_cell->halos[0] + proc_cell->halos[2]) + proc_cell->size[0];
-	//skip the top halo rows if present and add the left hal oon the first "actual" row if present
-	return (w*halowidth*proc_cell->halos[1] + halowidth*proc_cell->halos[0])*img_bytes;
+	int w = halowidth[0]*(proc_cell->halos[0] + proc_cell->halos[2]) + proc_cell->size[0];
+	//skip the top halo rows if present and add the left halo on the first "actual" row if present
+	return (w*halowidth[1]*proc_cell->halos[1] + halowidth[0]*proc_cell->halos[0])*img_bytes;
 }
 
 
-char read_write_cell_1D( pgm* original_img, pgm* local_img, img_cell* proc_cell, int halowidth, char* mode) {
+char read_write_cell_1D( pgm* original_img, pgm* local_img, img_cell* proc_cell, const unsigned int* halowidth, const char* mode) {
 
 	if (strcmp(mode,"r")==0 ) {
 		if ( ! local_img->data) {
@@ -104,14 +103,10 @@ char read_write_cell_1D( pgm* original_img, pgm* local_img, img_cell* proc_cell,
 void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const uint8_t* halos) {
 	
 	
-	register const int xdim = input_img->size[0] ;
-	register const int ydim = input_img->size[1] ;
-	register const int xdim1 = input_img->size[0] - 1;
-	register const int ydim1 = input_img->size[1]  - 1;
-
+	register const size_t xdim = input_img->size[0] ;
+	register const size_t ydim = input_img->size[1] ;
 	
-	register const int ker_s = k->size ;
-	register const int ker_hsize = ( k->size - 1)/2 ;
+
 	double* kernel = k->ker;
 	double* ker_norm = k->kernorm;
 	
@@ -124,15 +119,15 @@ void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const uint8_t* halos) 
 		if there is a halo we offset the correspnding loop boundary by the kernel halfsize
 		
 	*/
-	register int bound_l = halos[0]*ker_hsize;
-	register int bound_u = halos[1]*ker_hsize;
-	register int bound_r = xdim - halos[2]*ker_hsize;
-	register int bound_d = ydim - halos[3]*ker_hsize;
 	
-	//printf("bound l : %d\n",bound_l);
-	//printf("bound u : %d\n",bound_u);
-	//printf("bound r : %d\n",bound_r);
-	//printf("bound d : %d\n",bound_d);
+	register size_t hsize_h = k->halfsize[0];
+	register size_t hsize_v = k->halfsize[1];
+	
+	register size_t bound_l = halos[0]*hsize_h;
+	register size_t bound_u = halos[1]*hsize_v;
+	register size_t bound_r = xdim - halos[2]*hsize_h;
+	register size_t bound_d = ydim - halos[3]*hsize_v;
+	
 	
 	
 	/*
@@ -146,36 +141,35 @@ void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const uint8_t* halos) 
 	at the end all the calculations are done but the buffer is full of data still to be written
 	*/
 	
-	register const int buffer_lines = (ker_hsize + 1);
-	register int line_idx; 
+	register const size_t buffer_lines = (hsize_v + 1);
+	register size_t line_idx; 
 	register int linebuf_length = (bound_r - bound_l);
 	int16_t* linebuf = (int16_t*)malloc( buffer_lines*linebuf_length*sizeof(int16_t) );
 	
 	register int offs_l, offs_r, offs_u, offs_d;
-	register double accum, normc;
+	double normc;
+	register double accum;
 	register uint8_t normflagx,normflagy;
 
 	
 	
-	for (int i=bound_u; i<bound_d; ++i) {
+	for (size_t i=bound_u; i<bound_d; ++i) {
 		line_idx = linebuf_length*((i - bound_u)%buffer_lines);
 		
 		
 		if (i>=bound_u + buffer_lines) {
-			//printf("line_print : %d\n",i - bound_u - buffer_lines);
-			//printf("line_idx : %d\n",(i - bound_u)%buffer_lines);
 			memcpy( &image[(i - buffer_lines)*xdim + bound_l] , (&linebuf[line_idx]), linebuf_length*sizeof(int16_t));
 		}
 		
 		//are we close to the left/right edges?
-		normflagy = ( (i<ker_hsize) || (i>=(ydim - ker_hsize) ) );
+		normflagy = ( (i<hsize_v) || (i>=(ydim - hsize_v) ) );
 		
-		for (int j=bound_l; j<bound_r; ++j) {
+		for (size_t j=bound_l; j<bound_r; ++j) {
 			
 			//printf("i j : %d %d\n",i,j);
 			
 			//are we close to the top/bottom edges?
-			normflagx = normflagy + ( (j<ker_hsize) || (j>=(xdim - ker_hsize) ) );
+			normflagx = normflagy +  ( (j<hsize_h) || (j>=(xdim - hsize_h ) ) );
 			
 			/*
 			general code to stay within the boundaries of the image
@@ -189,39 +183,35 @@ void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const uint8_t* halos) 
 			the offsets become = l 0, u 0, r +1, d +1
 			*/
 			
-			offs_l = -min( ker_hsize, j );
-			offs_u = -min( ker_hsize, i );
-			offs_r = min( ker_hsize, xdim1 - j );
-			offs_d = min( ker_hsize, ydim1 - i );
+			offs_l = -min( hsize_h, j );
+			offs_u = -min( hsize_v, i );
+			offs_r = min( hsize_h, xdim - j - 1);
+			offs_d = min( hsize_v, ydim - i - 1);
 			
 			
 			accum=0;
 			if (( offs_r - offs_l)%2) {
-				//this branch selects the odd-sized convolutions which can only happen if the normflag is enabled
-				//so this branch is never entered when we're far from the borders
-				for (int k = offs_u; k<= offs_d; ++k) {
-					accum += kernel[ ker_s*(ker_hsize + k) +  ker_hsize + offs_l  ]*( image[(i + k)*xdim + j + offs_l] )
-							+ kernel[ ker_s*(ker_hsize + k) +  ker_hsize + offs_l + 1  ]*( image[(i + k)*xdim + j + offs_l + 1] );
+				//this branch selects the even-sized convolutions
+				//this branch is never entered when we're far from the borders
+				for (int u = offs_u; u<= offs_d; ++u) {
+					accum += kernel[ k->size[0]*(hsize_v + u) +  hsize_h + offs_l  ]*( image[(i + u)*xdim + j + offs_l] )
+							+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + offs_l + 1 ]*( image[(i + u)*xdim + j + offs_l + 1] );
 					for (int t =  offs_l + 2; t<= offs_r; t+=2) {
-						//printf("k t : %d %d \n",k,t);
-						//getchar();
-						accum += kernel[ ker_s*(ker_hsize + k) +  ker_hsize + t  ]*( image[(i + k)*xdim + j + t] ) 
-								+ kernel[ ker_s*(ker_hsize + k) +  ker_hsize + t +1 ]*( image[(i + k)*xdim + j + t + 1] );
+						accum += kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t  ]*( image[(i + u)*xdim + j + t] )
+								+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 1 ]*( image[(i + u)*xdim + j + t + 1] ) ;
 					}
 
 				}
 			}
 			else {
-				for (int k = offs_u; k<= offs_d; ++k) {
-					accum += kernel[ ker_s*(ker_hsize + k) +  ker_hsize + offs_l  ]*( image[(i + k)*xdim + j + offs_l] );
+				for (int u = offs_u; u<= offs_d; ++u) {
+					accum += kernel[ k->size[0]*(hsize_v + u) +  hsize_h + offs_l  ]*( image[(i + u)*xdim + j + offs_l] ) ;
 					for (int t =  offs_l + 1; t<= offs_r; t+=2) {
-						//printf("k t : %d %d \n",k,t);
-						//getchar();
-						accum += kernel[ ker_s*(ker_hsize + k) +  ker_hsize + t  ]*( image[(i + k)*xdim + j + t] ) 
-								+ kernel[ ker_s*(ker_hsize + k) +  ker_hsize + t +1 ]*( image[(i + k)*xdim + j + t + 1] );
+						accum += kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t  ]*( image[(i + u)*xdim + j + t] )
+								+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 1 ]*( image[(i + u)*xdim + j + t + 1] ) ;
 					}
 
-				}	
+				}
 			}
 			
 			//vignette renormalisation
@@ -231,28 +221,22 @@ void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const uint8_t* halos) 
 			//which is always 1, we skip these calculations
 			
 			if (normflagx ) {
-				normc=ker_norm[ker_s*(ker_hsize + offs_u + offs_d) +  ker_hsize + offs_l + offs_r];
+				normc=ker_norm[k->size[0]*(hsize_v + offs_u + offs_d) +  hsize_h + offs_l + offs_r];
 				accum = accum*normc;
 			}
-			
 			linebuf[line_idx + j - bound_l] = (uint16_t)accum;
 		}
 	}
-	
-
 	
 	//the buffer is full of lines still to write
 	//but the next buffer line to write will be at an arbitrary index
 	
 	//this is the buffer line that contains the next line of data
-	int j = (bound_d - bound_u - buffer_lines)%buffer_lines ;
+	size_t j = (bound_d - bound_u - buffer_lines)%buffer_lines ;
 	
 	//write the data in the last lines of the image
 	//when we reach the end of the buffer, wrap around as the last lines to write are at the top
-	for (int i = bound_d - buffer_lines; i<bound_d ; ++i) {
-		
-		//printf("line_print : %d\n",i - bound_u);
-		//printf("line_idx : %d\n",(i - bound_u)%buffer_lines);
+	for (size_t i = bound_d - buffer_lines; i<bound_d ; ++i) {
 		
 		memcpy( &image[i*xdim + bound_l] , (&linebuf[linebuf_length*j]), linebuf_length*sizeof(int16_t));
 		j = (j + 1)%buffer_lines;
@@ -261,10 +245,10 @@ void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const uint8_t* halos) 
 	
 
 	free(linebuf);
-	//printf("Blurring complete.\n");
 	return ;
 
 	
 }
+
 
 

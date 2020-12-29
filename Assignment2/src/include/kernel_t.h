@@ -13,7 +13,7 @@ typedef struct {
 
 
 int8_t alloc_kernel( kernel_t* k, const unsigned int* ker_s );
-int8_t copy_kernel(kernel_t* new_ker, kernel_t *old_ker) ;
+int8_t copy_kernel(kernel_t* new_ker, const kernel_t *old_ker) ;
 void delete_kernel( kernel_t* k) ;
 int8_t kernel_init_from_file(kernel_t* k, const  char* kernel_fname );
 int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned int* kernel_size, const float kernel_weight);

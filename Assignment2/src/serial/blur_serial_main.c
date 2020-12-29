@@ -40,10 +40,13 @@ int main( int argc, char **argv )
 	/*
 	printf("ker size : %d x %d \n", kernel.size[0],kernel.size[1] );
 	printf("ker hsize : %d x %d \n", kernel.halfsize[0],kernel.halfsize[1] );
+	double norm=0;
 	for (size_t i=0; i<kernel.size[0]*kernel.size[1]; ++i) {
+		norm += kernel.ker[i];
 		printf("ker %ld %f %f\n",i,kernel.ker[i], kernel.kernorm[i]);	
 	}
-	
+	printf ("ker norm %f\n.",norm);
+	return 0;
 	*/
 	
 
@@ -82,9 +85,9 @@ int main( int argc, char **argv )
 	clock_t begin = clock();
     
 
-	pgm_blur_copy( &original_image, &kernel );
+	//pgm_blur_copy( &original_image, &kernel );
 	//pgm_blur_linebuf( &original_image, &kernel );
-	//pgm_blur_linebuf_unrol( &original_image, &kernel );
+	pgm_blur_linebuf_unrol( &original_image, &kernel );
 	
 	clock_t end = clock();
 	printf("Elapsed: %f seconds\n", (double)(end - begin) / CLOCKS_PER_SEC );

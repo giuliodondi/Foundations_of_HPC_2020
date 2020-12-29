@@ -14,22 +14,23 @@
 
 
 //blurring function headers
-void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, pgm* image, int halowidth) ;
-int trim_halo_1D( img_cell* proc_cell, char img_bytes, int halowidth );
-char read_write_cell_1D( pgm* original_img, pgm* local_img, img_cell* proc_cell, int halowidth, char* mode);
+void get_cell_1D(const int nprocs, const int proc_id, img_cell* proc_cell, const pgm* image, const unsigned int* halowidth);
+int trim_halo_1D( const img_cell* proc_cell, const char img_bytes, const unsigned int* halowidth );
+char read_write_cell_1D( pgm* original_img, pgm* local_img, img_cell* proc_cell, const unsigned int* halowidth, const char* mode);
 void pgm_blur_halo(  pgm* input_img , kernel_t* k,  const char* halos);
+
 
 
 
 int main( int argc, char **argv ) 
 { 
-	
-	
+	double header_time, read_time, write_time, global_t;
+	global_t = omp_get_wtime();
 		
 	pgm  original_image = new_pgm();
 	kernel_t kernel;
-	int halowidth;
-	double header_time, read_time, write_time, global_t;
+	unsigned int halowidth0[2] = {0,0};
+	
 	long int header_offs=0;
 	
 	
@@ -58,7 +59,6 @@ int main( int argc, char **argv )
 	header_time = omp_get_wtime() - header_time;
 	printf("Header read time : %f s.\n",header_time);
 	
-	halowidth = (kernel.size - 1)/2;
 	
 
 	//allocate memory for the image
@@ -70,8 +70,8 @@ int main( int argc, char **argv )
 	}
 
 
-	global_t = omp_get_wtime();
-	#pragma omp parallel  shared( kernel, original_image, halowidth)
+	
+	#pragma omp parallel  shared( kernel, original_image)
 	{
 
 		int nprocs = omp_get_num_threads();
@@ -86,7 +86,7 @@ int main( int argc, char **argv )
 		//touch the image buffer
 		//first we need information on the local image cells without halos
 		//build the cells accountign for the halo above and below the cells
-		get_cell_1D( nprocs, proc_id, &proc_cell, &original_image, 0);
+		get_cell_1D( nprocs, proc_id, &proc_cell, &original_image, halowidth0);
 
 		
 		//touch the memory
@@ -128,7 +128,7 @@ int main( int argc, char **argv )
 		
 		buf_read_time = omp_get_wtime();
 		//build the cells accountign for the halo above and below the cells
-		get_cell_1D( nprocs, proc_id, &proc_cell, &original_image, halowidth);
+		get_cell_1D( nprocs, proc_id, &proc_cell, &original_image, kernel.halfsize);
 		
 		//initialise the working image
 		//get the pointer to the beginnig of the memory section
@@ -138,7 +138,7 @@ int main( int argc, char **argv )
 		local_image.pix_bytes = original_image.pix_bytes;
 		
 		//allocate local buffer for the image portion
-		if (read_write_cell_1D(&original_image, &local_image, &proc_cell, halowidth,"r")== -1 ) {
+		if (read_write_cell_1D(&original_image, &local_image, &proc_cell, kernel.halfsize,"r")== -1 ) {
 			printf("Thread %d couldn't allocate memory for the image buffer.\n",proc_id);
 			clear_pgm( &local_image);
 			if (proc_id==0) {
@@ -172,9 +172,9 @@ int main( int argc, char **argv )
 		
 		buf_write_time = omp_get_wtime();
 		//update the cell parameters setting zero halosize
-		get_cell_1D( nprocs, proc_id, &proc_cell, &original_image, 0);
+		get_cell_1D( nprocs, proc_id, &proc_cell, &original_image, halowidth0);
 		
-		read_write_cell_1D(&original_image, &local_image, &proc_cell, halowidth, "w");
+		read_write_cell_1D(&original_image, &local_image, &proc_cell, kernel.halfsize, "w");
 		
 		buf_write_time = omp_get_wtime() - buf_write_time;
 		printf("Thread %d Buffer write t: %f s.\n",proc_id,buf_write_time);
@@ -183,12 +183,11 @@ int main( int argc, char **argv )
 		delete_kernel(&local_kernel);
 	}
 
-	global_t = omp_get_wtime() - global_t;
-	printf("Parallel region t: %f s.\n",global_t);
+	
 	
 
 	header_time = omp_get_wtime();
-	//read the file header
+	//write the file header
 	if (write_pgm_header( &original_image , outfile, &header_offs)== -1 ) {
 		printf("Aborting.\n");
 		clear_pgm( &original_image);
@@ -199,8 +198,8 @@ int main( int argc, char **argv )
 	printf("Header write time : %f s.\n",header_time);
 	
 	write_time = omp_get_wtime();
-	//read the image data
-	if (write_pgm_data( &original_image , outfile, &header_offs)== -1 ) {
+	//write the image data
+	if (write_pgm_data( &original_image , outfile)== -1 ) {
 		printf("Aborting.\n");
 		clear_pgm( &original_image);
 		delete_kernel(&kernel);
@@ -215,6 +214,9 @@ int main( int argc, char **argv )
 	clear_pgm( &original_image);
 	//the local image points to the memory location of the original image which is free
 	delete_kernel(&kernel);
+	
+	global_t = omp_get_wtime() - global_t;
+	printf("Total time : %f s.\n",global_t);
 	return 0;
 	
 

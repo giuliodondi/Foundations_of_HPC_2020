@@ -15,7 +15,6 @@
 void pgm_blur_copy(  pgm* input_img , kernel_t* k);
 void pgm_blur_linebuf(  pgm* input_img , kernel_t* k);
 void pgm_blur_linebuf_unrol(  pgm* input_img , kernel_t* k);
-void pgm_blur_linebuf_unrol2(  pgm* input_img , kernel_t* k);
 
 
 int main( int argc, char **argv ) 
@@ -30,9 +29,9 @@ int main( int argc, char **argv )
 	char infile[80] = "";
 	char outfile[80] = "output.pgm";
 	
-	pgm  original_image ;
+	pgm  original_image = new_pgm();
 	kernel_t kernel;
-	
+	long int header_offs=0;	
 
 	
 	
@@ -72,13 +71,11 @@ int main( int argc, char **argv )
 	
     
     printf("Input file \"%s\" has been read.\n",infile);
-	printf("The image is %d x %d.\n",original_image.width,original_image.height);
-	
-	
-	pgm  image;
-	image.data=NULL;
-	
+	printf("The image is %d x %d.\n",original_image.size[0],original_image.size[1]);
 
+	
+	
+	pgm  image = new_pgm();
 	
 	
 	printf("running the copy algorithm %d times.\n", NITER);
@@ -132,18 +129,6 @@ int main( int argc, char **argv )
 	
 	printf("Average runtime : %f s \n", avg_time/NITER );
 	
-		printf("running the line-buffered + unrolling 2 algorithm %d times.\n", NITER);
-	
-	avg_time = 0;
-	for (int n = 0; n< NITER; ++n) {
-		copy_pgm( &original_image, &image) ;
-		clock_t begin = clock();
-   		pgm_blur_linebuf_unrol2( &image, &kernel );
-		clock_t end = clock();
-		avg_time += (double)(end - begin) / CLOCKS_PER_SEC ;
-	}
-	
-	printf("Average runtime : %f s \n", avg_time/NITER );
 	
 
         
@@ -158,7 +143,7 @@ int main( int argc, char **argv )
 	printf("the header is %li bytes.\n",header_offs);
 	
 	//write the image data
-	if (write_pgm_data( &original_image , outfile, &header_offs)== -1 ) {
+	if (write_pgm_data( &original_image , outfile)== -1 ) {
 		printf("Aborting.\n");
 		clear_pgm( &original_image);
 		delete_kernel(&kernel);

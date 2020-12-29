@@ -63,7 +63,13 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 			strcpy(kernel_fname,argv[arg+1]);
 		}
 		else if (strcmp(argv[arg], "-kernel-type")==0 ) {
-			kernel_type = atoi(argv[arg+1]);
+			if (is_number(argv[arg + 1]) ) {
+				kernel_type = atoi(argv[arg+1]);
+			}
+			else {
+				printf("Kernel type is not a number.\n");	
+				return -1;
+			}
 		}
 		else if (strcmp(argv[arg], "-kernel-size")==0 ) {
 			tmp=0;
@@ -92,10 +98,7 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 					tmp = kernel_size[0];
 				}
 				++arg;
-			} else {
-				printf("Kernel size is not a number.\n");	
-			}
-			
+			} 			
 			
 			kernel_size[1]=tmp;
 			

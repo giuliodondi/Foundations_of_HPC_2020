@@ -8,11 +8,11 @@
 #include <string.h>
 
 
-int8_t alloc_kernel( kernel_t* k, const unsigned int* ker_s ) {
+int8_t alloc_kernel( kernel_t* k, const unsigned int* restrict ker_s ) {
 	
 	k->size[0] = ker_s[0];
 	k->size[1] = ker_s[1];
-	int ker_size2 = ker_s[0]*ker_s[1];
+	const int ker_size2 = ker_s[0]*ker_s[1];
 	k->halfsize[0] = (k->size[0] - 1)/2;
 	k->halfsize[1] = (k->size[1] - 1)/2;
 	k->ker = (double*)calloc( ker_size2 , sizeof(double));	
@@ -26,13 +26,13 @@ int8_t alloc_kernel( kernel_t* k, const unsigned int* ker_s ) {
 }
 
 
-int8_t copy_kernel(kernel_t* new_ker, kernel_t *old_ker) {
+int8_t copy_kernel(kernel_t* new_ker, const kernel_t *old_ker) {
 	
 	if (alloc_kernel(new_ker, old_ker->size)== -1 ) {
 		return -1;
 	}
 	
-	int ker_size2 = old_ker->size[0]*old_ker->size[1];
+	const int ker_size2 = old_ker->size[0]*old_ker->size[1];
 	memcpy( new_ker->ker , old_ker->ker , ker_size2*sizeof(double) );
 	memcpy( new_ker->kernorm , old_ker->kernorm , ker_size2*sizeof(double) );
 	return 0;
@@ -96,7 +96,7 @@ int8_t kernel_init_from_file(kernel_t* k, const  char* kernel_fname ) {
 	return 0;
 }
 
-int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned int* ker_s, const float kernel_weight) {
+int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned int* restrict ker_s, const float kernel_weight) {
 	
 	alloc_kernel( k , ker_s);
 	
@@ -153,7 +153,7 @@ void weighted_kernel(kernel_t* k, const float kernel_weight) {
 	double* kernel = k->ker;
 	const size_t ker_s2 = (k->size[0]*k->size[1]);
 	
-	float w = ( 1 - kernel_weight)/(ker_s2-1);
+	const float w = ( 1 - kernel_weight)/(ker_s2-1);
 	
 	
 	for (size_t i=0; i<ker_s2; ++i) {
@@ -171,9 +171,9 @@ void gaussian_kernel_simple(kernel_t* k) {
 	
 	double* kernel = k->ker;
 	
-	float binomial_h[k->size[0]];
-	float binomial_v[k->size[1]];
-	float newval, norm1=0, norm2=0, num1=tgamma(k->size[0] ), num2=tgamma(k->size[1] );
+	double binomial_h[k->size[0]];
+	double binomial_v[k->size[1]];
+	double newval, norm1=0, norm2=0, num1=tgamma(k->size[0] ), num2=tgamma(k->size[1] );
 
 	for (size_t i=0; i<k->size[0]; ++i) {
 		newval = num1/ ( tgamma(i + 1)*tgamma((int)k->size[0] - i ) );

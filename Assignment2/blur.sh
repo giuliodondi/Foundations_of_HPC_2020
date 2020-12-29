@@ -3,7 +3,7 @@
 LC_ALL='en_US.UTF-8'
 KER_FNAME='my_ker.txt'
 KER_TYPE='0'
-KER_SIZE='31 3'
+KER_SIZE='31'
 KER_WGHT='0.5'
 
 #VALGRINDCMD='valgrind --leak-check=full --show-leak-kinds=all --suppressions=/usr/share/openmpi/openmpi-valgrind.supp'
