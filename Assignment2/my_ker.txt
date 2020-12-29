@@ -1,0 +1,8 @@
+#Kernel formatting :
+#size_x /*space*/ size,y
+#kernel elements matrix, comma or space separated
+
+3 3
+1,1,1
+10,3,1
+1,1,2

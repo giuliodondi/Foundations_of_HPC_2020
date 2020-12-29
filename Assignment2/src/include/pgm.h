@@ -15,12 +15,15 @@ typedef struct {
 
 
 pgm new_pgm();
-char write_pgm_header( pgm* input_img, const char *image_name, long int* header_offs);
-char write_pgm_data( pgm* input_img, const char *image_name, long int* skip_header_offs) ;
-char read_pgm_header( pgm* input_img, const char *image_name, long int* header_offs);
-char read_pgm_data( pgm* input_img, const char *image_name, long int* skip_header_offs) ;
-void endian_swap(pgm *image) ;
+char allocate_pgm_memory( pgm* image) ;
 void clear_pgm( pgm* image) ;
 void copy_pgm( pgm *image1, pgm* image2) ;
+
+char read_pgm_header( pgm* input_img, const char *image_name, long int* header_offs);
+char read_pgm_data( pgm* input_img, const char *image_name, long int* skip_header_offs) ;
+char write_pgm_header( pgm* input_img, const char *image_name, long int* header_offs);
+char write_pgm_data( pgm* input_img, const char *image_name) ;
+void endian_swap(pgm *image) ;
+
 
 #endif

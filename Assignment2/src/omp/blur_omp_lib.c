@@ -19,7 +19,8 @@ void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, pgm* image, int 
 	proc_cell->size[0] = image->size[0];
 	
 	if (proc_id == 0) {
-		proc_cell->idx=0;
+		proc_cell->idx[0]=0;
+		proc_cell->idx[1]=0;
 		
 		proc_cell->size[1] = masterlines;
 		proc_cell->halos[0] = 0;
@@ -36,7 +37,9 @@ void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, pgm* image, int 
 		}
 		
 	}else {
-		proc_cell->idx = image->size[0]*( masterlines + (proc_id - 1)*childlines - halowidth)*image->pix_bytes;
+		proc_cell->idx[0]=0;
+		proc_cell->idx[1]=masterlines + (proc_id - 1)*childlines - halowidth;
+		//proc_cell->idx = image->size[0]*( masterlines + (proc_id - 1)*childlines - halowidth )*image->pix_bytes;
 		
 		proc_cell->size[1] = childlines + halowidth;
 		proc_cell->halos[0] = 0;
@@ -52,6 +55,9 @@ void get_cell_1D( int nprocs, int proc_id, img_cell* proc_cell, pgm* image, int 
 	proc_cell->size_ = proc_cell->size[0]*proc_cell->size[1]*image->pix_bytes;
 	
 }
+
+
+
 //returns the idx in the local cell buffer of the first "real" image pixel (i.e. not halo)
 //call this AFTER updating the cell parameters, i.e. the cell width /height values should 
 // exclude halos
@@ -75,14 +81,19 @@ char read_write_cell_1D( pgm* original_img, pgm* local_img, img_cell* proc_cell,
 				return -1;
 			}
 		}
-		memcpy( local_img->data , &original_img->data[proc_cell->idx] , proc_cell->size_*sizeof(uint8_t) );
+		//wortk out the beginning of the buffer in the original image
+		int img_idx = ( original_img->size[0]*proc_cell->idx[1]+ proc_cell->idx[0])*original_img->pix_bytes;
+			
+		memcpy( local_img->data , &original_img->data[img_idx] , proc_cell->size_*sizeof(uint8_t) );
 		
 
 	}
 	else if (strcmp(mode,"w")==0) {
+		//wortk out the beginning of the buffer in the original image
+		int img_idx = ( original_img->size[0]*proc_cell->idx[1]+ proc_cell->idx[0])*original_img->pix_bytes;
 		//wortk out the beginning of the local image buffer
 		int local_img_idx = trim_halo_1D( proc_cell, original_img->pix_bytes, halowidth);
-		memcpy( &original_img->data[proc_cell->idx] , &local_img->data[local_img_idx] , proc_cell->size_*sizeof(uint8_t) );
+		memcpy( &original_img->data[img_idx] , &local_img->data[local_img_idx] , proc_cell->size_*sizeof(uint8_t) );
 
 	}
 	return 0;

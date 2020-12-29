@@ -8,10 +8,13 @@
 #include <string.h>
 
 
-int8_t alloc_kernel( kernel_t* k, const unsigned int ker_s ) {
+int8_t alloc_kernel( kernel_t* k, const unsigned int* ker_s ) {
 	
-	k->size = ker_s;
-	int ker_size2 = ker_s*ker_s;
+	k->size[0] = ker_s[0];
+	k->size[1] = ker_s[1];
+	int ker_size2 = ker_s[0]*ker_s[1];
+	k->halfsize[0] = (k->size[0] - 1)/2;
+	k->halfsize[1] = (k->size[1] - 1)/2;
 	k->ker = (double*)calloc( ker_size2 , sizeof(double));	
 	k->kernorm = (double*)calloc( ker_size2 , sizeof(double));
 	if ( k->ker && k->kernorm ) {
@@ -29,7 +32,7 @@ int8_t copy_kernel(kernel_t* new_ker, kernel_t *old_ker) {
 		return -1;
 	}
 	
-	int ker_size2 = old_ker->size*old_ker->size;
+	int ker_size2 = old_ker->size[0]*old_ker->size[1];
 	memcpy( new_ker->ker , old_ker->ker , ker_size2*sizeof(double) );
 	memcpy( new_ker->kernorm , old_ker->kernorm , ker_size2*sizeof(double) );
 	return 0;
@@ -42,10 +45,58 @@ void delete_kernel( kernel_t* k) {
 	free(k->kernorm);
 	k->ker=NULL;
 	k->kernorm=NULL;
-	k->size=0;
+	k->size[0] = 0;
+	k->size[1] = 0;
+	k->halfsize[0] = 0;
+	k->halfsize[1] = 0;
 }
 
-int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned int ker_s, const float kernel_weight) {
+int8_t kernel_init_from_file(kernel_t* k, const  char* kernel_fname ) {
+	FILE* kernel_file; 
+	kernel_file = fopen(kernel_fname, "r"); 
+	
+	char   *line = NULL;
+	char * kerval;
+	size_t  a, n=0,i = 0;
+	unsigned int kernel_size[2]={0,0};
+
+	// skip all the comments
+	a = getline( &line, &n, kernel_file);
+	while ( (a > 0) && (line[0]=='#') ) {
+    	a = getline( &line, &n, kernel_file);
+	}	
+	if (a<=0) {
+	  	printf("Error while reading the kernel file header.\n");
+	  	free( line );
+		fclose(kernel_file);
+	  	return -1;
+	}
+	
+	// read the kernel sizes
+	a = fscanf(kernel_file, "%d%*c %d%*c", &kernel_size[0], &kernel_size[1] );
+	alloc_kernel( k , kernel_size);
+	
+	//read line by line for the kernel values separated either by comma or space
+	while ( fgets( line, sizeof(line), kernel_file ) != NULL ) {
+		kerval=strtok(line," ,");
+		while (kerval!=NULL) {
+			k->ker[i] = atof(kerval);
+			++i;
+			kerval=strtok(NULL," ,");
+			
+		}
+	  
+	}
+	
+	fclose(kernel_file);
+	
+	normalise_kernel(k);
+	kernel_normalisations(k);
+	
+	return 0;
+}
+
+int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned int* ker_s, const float kernel_weight) {
 	
 	alloc_kernel( k , ker_s);
 	
@@ -86,36 +137,31 @@ int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned i
 
 void average_kernel(kernel_t* k) {
 	
-	double* kernel_matrix = k->ker;
-	const size_t ker_s2 = (k->size*k->size);
+	double* kernel = k->ker;
+	const size_t ker_s2 = k->size[0]*k->size[1];
 	
 	for (size_t i=0; i<ker_s2; ++i) {
-		kernel_matrix[i] = (float)1/ker_s2;
+		kernel[i] = (float)1/ker_s2;
 	}
 	
-	
-	// = kernel_matrix;
-	//k->size = ker_s;
+
 }
 
 
 void weighted_kernel(kernel_t* k, const float kernel_weight) {
 	
-	double* kernel_matrix = k->ker;
-	const size_t ker_s2 = (k->size*k->size);
+	double* kernel = k->ker;
+	const size_t ker_s2 = (k->size[0]*k->size[1]);
 	
 	float w = ( 1 - kernel_weight)/(ker_s2-1);
 	
 	
 	for (size_t i=0; i<ker_s2; ++i) {
-		kernel_matrix[i] = w;
+		kernel[i] = w;
 	}
 	
-	int mid_idx = (k->size-1)/2;
-	kernel_matrix[mid_idx*(k->size+1)] = kernel_weight;
-	
-	
-	//k->ker = kernel_matrix;
+	kernel[k->size[0]*k->halfsize[1] + k->halfsize[0]] = kernel_weight;
+
 }
 
 
@@ -123,29 +169,33 @@ void weighted_kernel(kernel_t* k, const float kernel_weight) {
 //uses the tgamma function in math.h for the factorial
 void gaussian_kernel_simple(kernel_t* k) {
 	
-	double* kernel_matrix = k->ker;
-	const size_t ker_s = k->size;
+	double* kernel = k->ker;
 	
-	float binomial[ker_s];
-	float newval, norm=0, num=tgamma(ker_s );
+	float binomial_h[k->size[0]];
+	float binomial_v[k->size[1]];
+	float newval, norm1=0, norm2=0, num1=tgamma(k->size[0] ), num2=tgamma(k->size[1] );
 
-	for (size_t k=0; k<ker_s; ++k) {
-		newval = num/ ( tgamma(k + 1)*tgamma(ker_s - k ) );
-		binomial[k]	= newval;
-		norm += newval;
+	for (size_t i=0; i<k->size[0]; ++i) {
+		newval = num1/ ( tgamma(i + 1)*tgamma((int)k->size[0] - i ) );
+		binomial_h[i]	= newval;
+		norm1 += newval;
 	}
-	norm = norm*norm;
+	for (size_t i=0; i<k->size[1]; ++i) {
+		newval = num2/ ( tgamma(i + 1)*tgamma((int)k->size[1] - i ) );
+		binomial_v[i]	= newval;
+		norm2 += newval;
+	}
+	norm1 = norm1*norm2;
 
 
-	for (size_t i=0; i<ker_s; ++i) {
-		for (size_t j=0; j<ker_s; ++j) {
-			kernel_matrix[i*ker_s + j] =  binomial[i]*binomial[j]/norm;
+	for (size_t i=0; i<k->size[1]; ++i) {
+		for (size_t j=0; j<k->size[0]; ++j) {
+			kernel[i*k->size[0] + j] =  binomial_v[i]*binomial_h[j]/norm1;
 		}
 	}
 
 	
-	k->ker = kernel_matrix;
-	k->size = ker_s;
+	k->ker = kernel;
 }
 
 
@@ -170,8 +220,9 @@ void kernel_normalisations(kernel_t* k) {
 	them in their unique place, so that vignetting removal entails just a memory access and a float division
 	*/
 	
-	register const int ker_s = k->size ;	
-	register const int ker_hsize = ( k->size - 1)/2 ;
+	//const int ker_s = k->size ;	
+	//const int ker_hsize = ( k->size - 1)/2 ;
+	
 	
 	double* kernel = k->ker;
 	
@@ -180,26 +231,70 @@ void kernel_normalisations(kernel_t* k) {
 	
 	double* kernel_norm = k->kernorm;
 	
-	for (int i=0; i<ker_s; ++i) {
-		for (int j=0; j<ker_s; ++j) {
+	for (size_t i=0; i<k->size[1]; ++i) {
+		for (size_t j=0; j<k->size[0]; ++j) {
 			
-			offs_l = -min( ker_hsize, j );
-			offs_u = -min( ker_hsize, i );
-			offs_r = min( ker_hsize, ker_s - 1 - j );
-			offs_d = min( ker_hsize, ker_s - 1 - i );
+			offs_l = -min( k->halfsize[0], j );
+			offs_u = -min( k->halfsize[1], i );
+			offs_r = min( k->halfsize[0], k->size[0] - 1 - j );
+			offs_d = min( k->halfsize[1], k->size[1] - 1 - i );
 						
+			
+			
+			
 			normc=0;
-			for (int k = offs_u; k<= offs_d; ++k) {
+			/*
+			for (int u = offs_u; u<= offs_d; ++u) {
 				for (int t =  offs_l; t<= offs_r; ++t) {
-					normc += kernel[ ker_s*(ker_hsize + k) +  ker_hsize + t  ] ;
+					normc += kernel[ k->size[0]*(k->halfsize[1] + u) +  k->halfsize[0] + t  ] ;
 				}
-
-			}
-			kernel_norm[ker_s*(ker_hsize + offs_u + offs_d) +  ker_hsize + offs_l + offs_r] = 1/normc;
 				
+			}
+			*/
+			
+			if (( offs_r - offs_l)%2) {
+				for (int u = offs_u; u<= offs_d; ++u) {
+					normc += kernel[ k->size[0]*(k->halfsize[1] + u) +  k->halfsize[0] + offs_l  ] 
+							+ kernel[ k->size[0]*(k->halfsize[1] + u) +  k->halfsize[0] + offs_l + 1 ] ;
+					for (int t =  offs_l + 2; t<= offs_r; t+=2) {
+						normc += kernel[ k->size[0]*(k->halfsize[1] + u) +  k->halfsize[0] + t  ] 
+							+ kernel[ k->size[0]*(k->halfsize[1] + u) +  k->halfsize[0] + t + 1 ] ;
+					}
+
+				}
+			}
+			else {
+				for (int u = offs_u; u<= offs_d; ++u) {
+					normc += kernel[ k->size[0]*(k->halfsize[1] + u) +  k->halfsize[0] + offs_l  ] ;
+					for (int t =  offs_l + 1; t<= offs_r; t+=2) {
+						normc += kernel[ k->size[0]*(k->halfsize[1] + u) +  k->halfsize[0] + t  ] 
+							+ kernel[ k->size[0]*(k->halfsize[1] + u) +  k->halfsize[0] + t + 1 ] ;
+					}
+
+				}
+				
+			}
+			kernel_norm[k->size[0]*(k->halfsize[1] + offs_u + offs_d) +  k->halfsize[0] + offs_l + offs_r] = 1/normc;
+			
 		}
 	}
 
 }
 
-
+//normalises a given kernel
+//not neded for the built-in kernels
+void normalise_kernel(kernel_t* k) {
+	double* kernel = k->ker;
+	double norm=0;
+	for (size_t i=0; i<k->size[1]; ++i) {
+		for (size_t j=0; j<k->size[0]; ++j) {
+			norm += kernel[i*k->size[0] + j];
+		}
+	}
+	for (size_t i=0; i<k->size[1]; ++i) {
+		for (size_t j=0; j<k->size[0]; ++j) {
+			kernel[i*k->size[0] + j] /=  norm;
+		}
+	}
+	
+}

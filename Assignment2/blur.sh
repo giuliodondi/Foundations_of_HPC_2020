@@ -1,11 +1,10 @@
 #!/bin/bash
 
 LC_ALL='en_US.UTF-8'
-
-KER_TYPE=0
-KER_SIZE=31
-
-KER_WGHT=0.5
+KER_FNAME='my_ker.txt'
+KER_TYPE='0'
+KER_SIZE='31 3'
+KER_WGHT='0.5'
 
 #VALGRINDCMD='valgrind --leak-check=full --show-leak-kinds=all --suppressions=/usr/share/openmpi/openmpi-valgrind.supp'
 VALGRINDCMD='valgrind'
@@ -32,6 +31,7 @@ then
 else
 FNAME=$1
 ARGS="-input ${FNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}"
+#ARGS="-input ${FNAME} -kernel-file ${KER_FNAME}"
 shift
 while [[ $# -gt 0 ]]
 do
