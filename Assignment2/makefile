@@ -1,12 +1,15 @@
 COMPILER = gcc
 MPI_COMPILER = mpicc 
 OMP_COMPILER = gcc -fopenmp 
+GRADIENT_EXE_NAME = generate_gradient.x
 EXE_NAME = blur.x
 MPI_EXE_NAME = blur_mpi.x
 OMP_EXE_NAME = blur_omp.x
 FLAGS = -Wall -Wextra  -march=native -O3 -g3
 INCLUDE = -I src/include/
+CFLAGS=
 
+GRADIENT_OBJ = src/common/generate_gradient.o
 COMMON_OBJ = src/common/blur_common_lib.o  src/common/pgm_lib.o src/common/kernel_lib.o 
 SERIAL_OBJ = src/serial/blur_serial_main.o src/serial/pgm_blur_serial.o
 SERIALTEST_OBJ = src/serial/blur_serial_main_perftest.o src/serial/pgm_blur_serial.o
@@ -19,6 +22,9 @@ MPI_OBJ = src/mpi/blur_mpi_main.o src/mpi/blur_mpi_lib.o
 MOD= *.mod
 
 default: serial
+
+gradient: $(COMMON_OBJ)  $(GRADIENT_OBJ)
+	$(COMPILER) $^ -o $(GRADIENT_EXE_NAME) $(FLAGS) -lm
 
 serial: $(COMMON_OBJ)  $(SERIAL_OBJ)
 	$(COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
@@ -41,13 +47,13 @@ clean:
 
 
 src/omp/blur_omp_main.o : src/omp/blur_omp_main.c
-	$(OMP_COMPILER) -c $< -o $@ $(FLAGS) $(INCLUDE)
+	$(OMP_COMPILER) -c $< -o $@ $(FLAGS) $(CFLAGS) $(INCLUDE)
 	
 src/mpi/blur_mpi_main.o : src/mpi/blur_mpi_main.c
-	$(MPI_COMPILER) -c $< -o $@ $(FLAGS) $(INCLUDE)
+	$(MPI_COMPILER) -c $< -o $@ $(FLAGS) $(CFLAGS) $(INCLUDE)
 	
 %.o: %.c
-	$(COMPILER) -c $< -o $@ $(FLAGS) $(INCLUDE)
+	$(COMPILER) -c $< -o $@ $(FLAGS) $(CFLAGS) $(INCLUDE)
 
 
 	

@@ -2,9 +2,8 @@
 #include <stdint.h>
 
 
-
-int min( const int a, const int b);
-int max( const int a, const int b);
+inline int max(int a, int b) { return((a) > (b) ? a : b); }
+inline int min(int a, int b) { return((a) > (b) ? b : a); }
 
 void print_usage(char **argv) ;
 char is_number( char arg[] ) ;

@@ -6,15 +6,6 @@
 #include <unistd.h>
 #include <stdint.h>
 
-int min( const int a, const int b) {
-	if (a<b) {return a;}
-	else {return b;}
-}
-
-int max( const int a, const int b) {
-	if (a>b) {return a;}
-	else {return b;}
-}
 
 
 void print_usage(char **argv) {
@@ -122,7 +113,7 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 			}
 		}
 		else {
-			printf("Illegal argument.\n");
+			printf("Illegal argument \"%s\".\n",argv[arg]);
 			print_usage(argv);
 			return -1;
 		  }

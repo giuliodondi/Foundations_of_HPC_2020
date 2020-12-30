@@ -15,9 +15,11 @@ void pgm_blur_linebuf_unrol(  pgm* input_img , kernel_t* k);
 
 int main( int argc, char **argv ) 
 { 
-
+	#ifdef TIME
+	clock_t blur_t,total_t;
+	total_t = clock();
+    #endif 
 	
-    
 	//read command-line arguments and initialise the variables
 	
 	
@@ -74,24 +76,20 @@ int main( int argc, char **argv )
 		return -1;
 	}
 	
+    #ifdef INFO
+    	printf("Input file \"%s\" has been read.\n",infile);
+		printf("The image is %d x %d.\n",original_image.size[0],original_image.size[1]);
+	#endif
 	
-	
-    
-    printf("Input file \"%s\" has been read.\n",infile);
-	printf("The image is %d x %d.\n",original_image.size[0],original_image.size[1]);
-
-	
-	
-	clock_t begin = clock();
-    
-
+	#ifdef TIME
+	blur_t = clock();
+	#endif
 	//pgm_blur_copy( &original_image, &kernel );
 	//pgm_blur_linebuf( &original_image, &kernel );
 	pgm_blur_linebuf_unrol( &original_image, &kernel );
-	
-	clock_t end = clock();
-	printf("Elapsed: %f seconds\n", (double)(end - begin) / CLOCKS_PER_SEC );
-
+	#ifdef TIME
+	blur_t = clock() - blur_t;
+	#endif
 	
     //write the file header
 	if (write_pgm_header( &original_image , outfile, &header_offs)== -1 ) {
@@ -100,8 +98,9 @@ int main( int argc, char **argv )
 		delete_kernel(&kernel);
 		return -1;
 	}
-	printf("the header is %li bytes.\n",header_offs);
-	
+	#ifdef INFO
+	printf("The header is %li bytes.\n",header_offs);
+	#endif
 	//write the image data
 	if (write_pgm_data( &original_image , outfile)== -1 ) {
 		printf("Aborting.\n");
@@ -109,13 +108,16 @@ int main( int argc, char **argv )
 		delete_kernel(&kernel);
 		return -1;
 	}
-	
-	
 		
-	
+	#ifdef INFO
     printf("Output file \"%s\" has been written.\n",outfile);
+	#endif
 	
-	
+	#ifdef TIME
+	total_t = clock()-total_t;
+	printf("Blurring time: %f seconds\n", (double)(blur_t) / CLOCKS_PER_SEC );
+	printf("Total time: %f seconds\n", (double)(total_t) / CLOCKS_PER_SEC );
+	#endif
 
 	clear_pgm( &original_image);
 	delete_kernel(&kernel);
