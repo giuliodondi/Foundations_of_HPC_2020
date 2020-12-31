@@ -10,11 +10,24 @@
 #include <math.h>
 
 
+
 //one-dimensional image splitting
 void get_cell_1D(const int nprocs, const int proc_id, img_cell* proc_cell, const pgm* image, const unsigned int* halowidth) {
 	
 	int childlines = ceil(((float)image->size[1])/((float)nprocs) );
 	int masterlines = image->size[1] - (nprocs - 1)*childlines;
+	int lastchildlines = childlines;
+	if (masterlines<0) {
+		childlines -=1;
+		lastchildlines = image->size[1] - (nprocs - 1)*childlines;
+		masterlines = childlines;
+	}
+	
+	#ifdef INFO
+	if (proc_id==0) {
+		printf("Master: %d , Child: %d , Lastchild %d , Halowidth: %d\n",masterlines,childlines,lastchildlines,halowidth[1]);
+	}
+	#endif
 
 	proc_cell->size[0] = image->size[0];
 	
@@ -33,21 +46,26 @@ void get_cell_1D(const int nprocs, const int proc_id, img_cell* proc_cell, const
 		if (nprocs>1 ) {
 			proc_cell->size[1] += halowidth[1];
 			proc_cell->halos[3] = 1;
-		}
+		} 
 		
 	}else {
 		proc_cell->idx[0]=0;
 		proc_cell->idx[1]=masterlines + (proc_id - 1)*childlines - halowidth[1];
 		
-		proc_cell->size[1] = childlines + halowidth[1];
+		proc_cell->size[1] = halowidth[1];
 		proc_cell->halos[0] = 0;
 		proc_cell->halos[1] = 1;
 		proc_cell->halos[2] = 0;
-		proc_cell->halos[3] = 0;
+		
 		if (proc_id < (nprocs - 1)) {
-			proc_cell->size[1] += halowidth[1];
+			proc_cell->size[1] += childlines + halowidth[1];
 			proc_cell->halos[3] = 1;
 		}
+		else {
+			proc_cell->size[1] += lastchildlines; 
+			proc_cell->halos[3] = 0;
+		}
+		
 		
 	}
 	proc_cell->size_ = proc_cell->size[0]*proc_cell->size[1]*image->pix_bytes;

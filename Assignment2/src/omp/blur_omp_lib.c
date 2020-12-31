@@ -11,10 +11,22 @@
 
 
 //one-dimensional image splitting
-void get_cell_1D(const int nprocs, const int proc_id, img_cell* proc_cell, const pgm* image, const unsigned int* halowidth) {
+void get_cell_1D(const int nprocs, const int proc_id, img_cell* proc_cell, const pgm* image, const unsigned int* kerhwidth) {
 	
 	int childlines = ceil(((float)image->size[1])/((float)nprocs) );
 	int masterlines = image->size[1] - (nprocs - 1)*childlines;
+	int lastchildlines = childlines;
+	if (masterlines<0) {
+		childlines -=1;
+		lastchildlines = image->size[1] - (nprocs - 1)*childlines;
+		masterlines = childlines;
+	}
+	
+	#ifdef INFO
+	if (proc_id==0) {
+		printf("Master: %d , Child: %d , Lastchild %d , Halowidth: %d\n",masterlines,childlines,lastchildlines,kerhwidth[1]);
+	}
+	#endif
 
 	proc_cell->size[0] = image->size[0];
 	
@@ -31,23 +43,55 @@ void get_cell_1D(const int nprocs, const int proc_id, img_cell* proc_cell, const
 		//if there is just one worker it takes care of the entire image
 		//no halo needs to be included
 		if (nprocs>1 ) {
-			proc_cell->size[1] += halowidth[1];
-			proc_cell->halos[3] = 1;
+			proc_cell->size[1] += kerhwidth[1];
+			proc_cell->halos[3] = kerhwidth[1];
 		} 
 		
-	}else {
-		proc_cell->idx[0]=0;
-		proc_cell->idx[1]=masterlines + (proc_id - 1)*childlines - halowidth[1];
+	} 	else {
 		
-		proc_cell->size[1] = childlines + halowidth[1];
+		proc_cell->idx[0]=0;
+		proc_cell->idx[1]=masterlines + (proc_id - 1)*childlines ;
+		
+		
 		proc_cell->halos[0] = 0;
-		proc_cell->halos[1] = 1;
 		proc_cell->halos[2] = 0;
-		proc_cell->halos[3] = 0;
-		if (proc_id < (nprocs - 1)) {
-			proc_cell->size[1] += halowidth[1];
-			proc_cell->halos[3] = 1;
+		
+		//check if the cell is closer to the top edge of the image by the kernel half height
+		//if so the halo is the number of lines between the top edge and the cell
+		//otherwise we can take the entire kernel half height as the halo
+		if (  proc_cell->idx[1] < kerhwidth[1]) {
+			proc_cell->halos[1] = proc_cell->idx[1];
+			proc_cell->idx[1] = 0;
 		}
+		else {
+			proc_cell->idx[1]-=kerhwidth[1];
+			proc_cell->halos[1] = kerhwidth[1];	
+		}
+		
+		proc_cell->size[1] = proc_cell->halos[1];
+			
+		//similar check for the lower halo
+		//but not for the very last cell
+		if (proc_id < (nprocs - 1)) {
+			proc_cell->size[1] += childlines;
+			unsigned int cell_lastline = proc_cell->idx[1] + childlines;
+
+			if ( image->size[1] < cell_lastline + kerhwidth[1] ) {
+				proc_cell->halos[3] =  image->size[1] - cell_lastline;
+			} else {
+				proc_cell->halos[3] =  kerhwidth[1];
+			}
+
+
+			
+
+		} else {
+			proc_cell->size[1] += lastchildlines; 
+			proc_cell->halos[3] = 0;
+		}
+		
+		proc_cell->size[1] += proc_cell->halos[3];
+		
 		
 	}
 	proc_cell->size_ = proc_cell->size[0]*proc_cell->size[1]*image->pix_bytes;
@@ -56,50 +100,22 @@ void get_cell_1D(const int nprocs, const int proc_id, img_cell* proc_cell, const
 
 
 
+
 //returns the idx in the local cell buffer of the first "real" image pixel (i.e. not halo)
-//call this AFTER updating the cell parameters, i.e. the cell width /height values should 
-// exclude halos
-// this doesn't make a difference for the 1D splitting, it's for future compatibility
-int trim_halo_1D( const img_cell* proc_cell, const char img_bytes, const unsigned int* halowidth ) {
+
+int trim_halo_1D( const img_cell* proc_cell, const char img_bytes) {
 	//width of the actual pixels plus left and right halo if present
-	int w = halowidth[0]*(proc_cell->halos[0] + proc_cell->halos[2]) + proc_cell->size[0];
+	int w = (proc_cell->halos[0] + proc_cell->halos[2]) + proc_cell->size[0];
 	//skip the top halo rows if present and add the left halo on the first "actual" row if present
-	return (w*halowidth[1]*proc_cell->halos[1] + halowidth[0]*proc_cell->halos[0])*img_bytes;
-}
-
-
-char read_write_cell_1D( pgm* original_img, pgm* local_img, img_cell* proc_cell, const unsigned int* halowidth, const char* mode) {
-
-	if (strcmp(mode,"r")==0 ) {
-		if ( ! local_img->data) {
-			local_img->data = (uint8_t*)malloc( proc_cell->size_*sizeof(uint8_t) );
-
-			if ( ! local_img->data) {
-				//printf("Error allocating memory for a cell.\n");
-				return -1;
-			}
-		}
-		//wortk out the beginning of the buffer in the original image
-		int img_idx = ( original_img->size[0]*proc_cell->idx[1]+ proc_cell->idx[0])*original_img->pix_bytes;
-			
-		memcpy( local_img->data , &original_img->data[img_idx] , proc_cell->size_*sizeof(uint8_t) );
-		
-
-	}
-	else if (strcmp(mode,"w")==0) {
-		//wortk out the beginning of the buffer in the original image
-		int img_idx = ( original_img->size[0]*proc_cell->idx[1]+ proc_cell->idx[0])*original_img->pix_bytes;
-		//wortk out the beginning of the local image buffer
-		int local_img_idx = trim_halo_1D( proc_cell, original_img->pix_bytes, halowidth);
-		memcpy( &original_img->data[img_idx] , &local_img->data[local_img_idx] , proc_cell->size_*sizeof(uint8_t) );
-
-	}
-	return 0;
+	return (w*proc_cell->halos[1] + proc_cell->halos[0])*img_bytes;
 }
 
 
 
-void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const uint8_t* halos) {
+
+
+
+void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const unsigned int* halos) {
 	
 	
 	register const size_t xdim = input_img->size[0] ;
@@ -120,11 +136,18 @@ void pgm_blur_halo(  pgm* input_img , const kernel_t* k,  const uint8_t* halos) 
 	register size_t hsize_h = k->halfsize[0];
 	register size_t hsize_v = k->halfsize[1];
 	
+	
+	register size_t bound_l = halos[0];
+	register size_t bound_u = halos[1];
+	register size_t bound_r = xdim - halos[2];
+	register size_t bound_d = ydim - halos[3];
+	
+	/*
 	register size_t bound_l = halos[0]*hsize_h;
 	register size_t bound_u = halos[1]*hsize_v;
 	register size_t bound_r = xdim - halos[2]*hsize_h;
 	register size_t bound_d = ydim - halos[3]*hsize_v;
-	
+	*/
 	
 	
 	/*

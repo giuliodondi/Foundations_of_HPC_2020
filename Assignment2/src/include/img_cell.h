@@ -3,11 +3,11 @@
 #define IMG_CELL_H
 
 typedef struct {
-	int size[2];
-	int idx[2];
-	int size_;
+	unsigned int size[2];
+	unsigned int idx[2];
+	unsigned int size_;
 	//int idx;
-	char halos[4];
+	unsigned int halos[4];
 } img_cell;
 
 
