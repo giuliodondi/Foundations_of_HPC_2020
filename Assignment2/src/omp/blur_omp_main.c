@@ -25,9 +25,9 @@ void pgm_blur_halo(  pgm* input_img , kernel_t* k,  const unsigned int* halos);
 int main( int argc, char **argv ) 
 { 
 	#ifdef TIME
-	double header_time, read_time, write_time, total_t;
 	double avg_buf_read_t=0, avg_blur_time_t=0, avg_buf_write_t=0 ;
 	double avg_buf_read_t2=0, avg_blur_time_t2=0, avg_buf_write_t2=0 ;
+	double header_time, read_time, write_time, total_t;
 	total_t = omp_get_wtime();
 	#endif
 		
@@ -51,8 +51,9 @@ int main( int argc, char **argv )
 	}
 	
 	
-	
+	#ifdef TIME
 	header_time = omp_get_wtime();
+	#endif
 	//read the file header
 	if (read_pgm_header( &original_image , infile, &header_offs)== -1 ) {
 		printf("Aborting.\n");
@@ -75,18 +76,23 @@ int main( int argc, char **argv )
 	}
 
 
-	
+	#ifdef TIME
 	#pragma omp parallel  shared( kernel, original_image) reduction(+: avg_buf_read_t, avg_blur_time_t, avg_buf_write_t, avg_buf_read_t2, avg_blur_time_t2, avg_buf_write_t2)
+	#else
+	#pragma omp parallel  shared( kernel, original_image)
+	#endif
+	
 	{
-
 		int nprocs = omp_get_num_threads();
 		int proc_id =  omp_get_thread_num();
 		
 		img_cell cell_halo, cell_nohalo;
 		pgm  local_image = new_pgm();
-		double buf_read_time, blur_time, buf_write_time;
 		int cell_idx, img_idx;
 		unsigned int halowidth0[2] = {0,0};
+		#ifdef TIME
+			double buf_read_time, blur_time, buf_write_time;
+		#endif
 		
 		//create a local copy of the kernel
 		kernel_t local_kernel;
@@ -225,8 +231,9 @@ int main( int argc, char **argv )
 
 	
 	
-
+	#ifdef TIME
 	header_time = omp_get_wtime();
+	#endif
 	//write the file header
 	if (write_pgm_header( &original_image , outfile, &header_offs)== -1 ) {
 		printf("Aborting.\n");
@@ -234,10 +241,10 @@ int main( int argc, char **argv )
 		delete_kernel(&kernel);
 		return -1;
 	}
+	#ifdef TIME
 	header_time = omp_get_wtime() - header_time;
-	
-	
 	write_time = omp_get_wtime();
+	#endif
 	//write the image data
 	if (write_pgm_data( &original_image , outfile)== -1 ) {
 		printf("Aborting.\n");
@@ -245,7 +252,9 @@ int main( int argc, char **argv )
 		delete_kernel(&kernel);
 		return -1;
 	}
+	#ifdef TIME
 	write_time = omp_get_wtime() - write_time;
+	#endif
 	
 	
 	#ifdef INFO
