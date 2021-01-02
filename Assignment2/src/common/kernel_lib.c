@@ -148,12 +148,12 @@ void average_kernel(kernel_t* k) {
 }
 
 
-void weighted_kernel(kernel_t* k, const float kernel_weight) {
+void weighted_kernel(kernel_t* k, const double kernel_weight) {
 	
 	double* kernel = k->ker;
 	const size_t ker_s2 = (k->size[0]*k->size[1]);
 	
-	const float w = ( 1 - kernel_weight)/(ker_s2-1);
+	const double w = ( 1 - kernel_weight)/(ker_s2-1);
 	
 	
 	for (size_t i=0; i<ker_s2; ++i) {

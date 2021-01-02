@@ -2,19 +2,20 @@ COMPILER = gcc
 MPI_COMPILER = mpicc 
 OMP_COMPILER = gcc -fopenmp 
 GRADIENT_EXE_NAME = generate_gradient.x
-EXE_NAME = blur.x
+SERIAL_EXE_NAME = blur_serial.x
 MPI_EXE_NAME = blur_mpi.x
 OMP_EXE_NAME = blur_omp.x
 FLAGS = -Wall -Wextra  -march=native -O3 -g3
 INCLUDE = -I src/include/
 CFLAGS=
 
+CHK_OBJ = src/common/check_pgm.o  src/common/pgm_lib.o
 GRADIENT_OBJ = src/common/generate_gradient.o
 COMMON_OBJ = src/common/blur_common_lib.o  src/common/pgm_lib.o src/common/kernel_lib.o 
-SERIAL_OBJ = src/serial/blur_serial_main.o src/serial/pgm_blur_serial.o
-SERIALTEST_OBJ = src/serial/blur_serial_main_perftest.o src/serial/pgm_blur_serial.o
-OMP_OBJ = src/omp/blur_omp_main.o src/omp/blur_omp_lib.o
-MPI_OBJ = src/mpi/blur_mpi_main.o src/mpi/blur_mpi_lib.o
+SERIAL_OBJ = src/blur_serial_main.o src/common/blur_pgm_lib.o
+SERIALTEST_OBJ = src/blur_serial_main_perftest.o src/common/blur_pgm_lib.o
+OMP_OBJ = src/blur_omp_main.o src/common/blur_pgm_halo_lib.c.o src/common/img_cell.o
+MPI_OBJ = src/blur_mpi_main.o src/common/blur_pgm_halo_lib.c.o src/common/img_cell.o
 
 
 
@@ -23,14 +24,16 @@ MOD= *.mod
 
 default: serial
 
+all : serial mpi omp
+
 gradient: $(COMMON_OBJ)  $(GRADIENT_OBJ)
 	$(COMPILER) $^ -o $(GRADIENT_EXE_NAME) $(FLAGS) -lm
 
 serial: $(COMMON_OBJ)  $(SERIAL_OBJ)
-	$(COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
+	$(COMPILER) $^ -o $(SERIAL_EXE_NAME) $(FLAGS) -lm
 	
 serialtest: $(COMMON_OBJ)  $(SERIALTEST_OBJ)
-	$(COMPILER) $^ -o $(EXE_NAME) $(FLAGS) -lm
+	$(COMPILER) $^ -o $(SERIAL_EXE_NAME) $(FLAGS) -lm
 	
 	
 omp: $(COMMON_OBJ) $(OMP_OBJ) 
@@ -38,18 +41,24 @@ omp: $(COMMON_OBJ) $(OMP_OBJ)
 
 mpi: $(COMMON_OBJ) $(MPI_OBJ)
 	$(MPI_COMPILER) $^ -o $(MPI_EXE_NAME) $(FLAGS) -lm
+	
+	
+check: $(CHK_OBJ)
+	$(COMPILER) $^ -o check_pgm.x $(INCLUDE) $(FLAGS) -lm
 
 clean:
-	rm -rf $(SERIAL_OBJ) $(SERIALTEST_OBJ) $(COMMON_OBJ) $(OMP_OBJ) $(MPI_OBJ) $(EXE_NAME) $(OMP_EXE_NAME) $(MPI_EXE_NAME) $(MOD)
+	rm -rf $(SERIAL_OBJ) $(SERIALTEST_OBJ) $(COMMON_OBJ) $(OMP_OBJ) $(MPI_OBJ) $(CHK_OBJ)
+	rm -rf $(SERIAL_EXE_NAME) $(OMP_EXE_NAME) $(MPI_EXE_NAME) $(GRADIENT_EXE_NAME) check_pgm.x 
+	rm -rf $(MOD)
 	
 .PHONY: clean default
 
 
 
-src/omp/blur_omp_main.o : src/omp/blur_omp_main.c
+src/blur_omp_main.o : src/blur_omp_main.c
 	$(OMP_COMPILER) -c $< -o $@ $(FLAGS) $(CFLAGS) $(INCLUDE)
 	
-src/mpi/blur_mpi_main.o : src/mpi/blur_mpi_main.c
+src/blur_mpi_main.o : src/blur_mpi_main.c
 	$(MPI_COMPILER) -c $< -o $@ $(FLAGS) $(CFLAGS) $(INCLUDE)
 	
 %.o: %.c

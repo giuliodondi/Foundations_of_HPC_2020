@@ -2,6 +2,7 @@
 #include <kernel_t.h>
 #include <img_cell.h>
 #include <common_headers.h>
+#include <blur_pgm.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,12 +13,6 @@
 
 #include <omp.h>
 
-
-//blurring function headers
-void get_cell_1D(const int nprocs, const int proc_id, img_cell* proc_cell, const pgm* image, const unsigned int* halowidth);
-//void get_cell_size_idx(const img_cell* proc_cell, const char img_bytes, int* size, int*idx, char* mode);
-int trim_halo_1D( const img_cell* proc_cell, const char img_bytes );
-void pgm_blur_halo(  pgm* input_img , kernel_t* k,  const unsigned int* halos);
 
 
 
@@ -188,7 +183,7 @@ int main( int argc, char **argv )
 
 		
 		#ifdef INFO
-		printf("\nCell %d is %d rows, %d cols, starts at line %d col %d .\n", proc_id, cell_halo.size[1], cell_halo.size[0], cell_halo.idx[1], cell_halo.idx[0] );
+		printf("\nCell %d is %d x %d , starts at img line %d col %d .\n", proc_id, cell_halo.size[1], cell_halo.size[0], cell_halo.idx[1], cell_halo.idx[0] );
 		printf("Cell %d halos : (%d %d %d %d).\n", proc_id, cell_halo.halos[0], cell_halo.halos[1], cell_halo.halos[2], cell_halo.halos[3] );
 		printf("\n");
 		#endif
@@ -199,7 +194,7 @@ int main( int argc, char **argv )
 		blur_time = omp_get_wtime();
 		#endif
 		
-		pgm_blur_halo( &local_image, &local_kernel , cell_halo.halos);
+		blur_halo_func_manager( &local_image, &local_kernel , cell_halo.halos);
 		
 		#ifdef TIME
 		blur_time = omp_get_wtime() - blur_time;
@@ -228,7 +223,7 @@ int main( int argc, char **argv )
 		clear_pgm( &local_image);
 		delete_kernel(&local_kernel);
 	}
-
+	delete_kernel(&kernel);
 	
 	
 	#ifdef TIME
@@ -263,7 +258,6 @@ int main( int argc, char **argv )
 
 	clear_pgm( &original_image);
 	//the local image points to the memory location of the original image which is free
-	delete_kernel(&kernel);
 	
 	#ifdef TIME
 	total_t = omp_get_wtime() - total_t;

@@ -1,3 +1,4 @@
+
 #include <stdint.h>
 
 #ifndef KERNEL_H
@@ -19,7 +20,7 @@ int8_t kernel_init_from_file(kernel_t* k, const  char* kernel_fname );
 int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned int* kernel_size, const float kernel_weight);
 
 void average_kernel(kernel_t* k);
-void weighted_kernel(kernel_t* k, const float kernel_weight);
+void weighted_kernel(kernel_t* k, const double kernel_weight);
 void gaussian_kernel_simple(kernel_t* k);
 
 void kernel_normalisations(kernel_t* k);

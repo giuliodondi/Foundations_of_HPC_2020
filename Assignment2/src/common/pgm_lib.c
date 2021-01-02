@@ -245,5 +245,76 @@ int img_idx_convert(pgm* image, unsigned int* idx_arr) {
 	return  (image->size[0]*idx_arr[1]+ idx_arr[0])*image->pix_bytes;
 }
 
+void compare_pgm( pgm *image1, pgm* image2, const char* outfile) {
+	
+	char sizematch = 1;
+	
+	
+	
+	FILE* f; 
+	f = fopen(outfile, "a"); 
+		
+	if ( image1->size[0] == image2->size[0] ) {
+	} else {
+		sizematch=0;
+	}
+	
+	if ( image1->size[1] == image2->size[1] ) {
+	} else {
+		sizematch=0;
+	}
+	
+	if ( image1->maxval == image2->maxval ) {
+		fprintf(f,"Images maximum value matches.\n");	
+	} else {
+		fprintf(f,"Images maximum value doesn't match.\n");		
+	}
+	
+	if (sizematch==0) {
+		fprintf(f,"Image sizes do not match.\n");	
+		return;
+	} else {
+		fprintf(f,"Image sizes match.\n");	
+		fprintf(f,"The images are %d x %d pixels.\n", image1->size[0] , image1->size[1]);	
+	}
+			
+	
+	
+	unsigned int img_size = image1->size[0]*image1->size[1];
+	char pixmatch = 1;
+	unsigned int idx;
+	int count=0;
+	int dif, maxdif=0;;
+	
+	for (size_t i=0; i<image1->size[1]; ++i) {
+		for (size_t j=0; j<image1->size[0]; ++j) {
+			idx = i*image1->size[0] + j;
+			if (!(image1->data[idx] == image2->data[idx])) {
+				++count;
+				pixmatch=0;	
+				dif = image1->data[idx] - image2->data[idx];
+				if ( abs(dif) > abs(maxdif) ) {
+					maxdif = image1->data[idx] - image2->data[idx];
+				}
+				#ifdef INFO
+					fprintf(f,"At ( %lu , %lu ) : %d %d diff : %d\n", i , j , image1->data[idx] , image2->data[idx], image1->data[idx] - image2->data[idx] );
+				#endif
+				
+			} 
+		}
+		
+	}
+	
+	if (pixmatch==1) {
+		fprintf(f,"Image pixels match.\n");	
+	} else {
+		fprintf(f,"%d ( %.3f %%) pixels do not match.\n",count,((double)count/(double)img_size)*100);	
+		fprintf(f,"Max difference %d\n",maxdif);
+	}
+	
+	
+	fclose(f);
+	
+}
 
 

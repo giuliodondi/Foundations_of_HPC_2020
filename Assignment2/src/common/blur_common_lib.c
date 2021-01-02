@@ -161,5 +161,3 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 	return 0;
 	
 }
-
-

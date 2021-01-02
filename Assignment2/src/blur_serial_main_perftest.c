@@ -1,6 +1,7 @@
 #include <pgm.h>
 #include <kernel_t.h>
 #include <common_headers.h>
+#include <blur_pgm.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -82,8 +83,9 @@ int main( int argc, char **argv )
 	
 	double avg_time = 0;
 	for (int n = 0; n< NITER; ++n) {
+		printf("\rIteration %d", n);
+		fflush(stdout);
 		copy_pgm( &original_image, &image) ;
-		
 		clock_t begin = clock();
    		pgm_blur_copy( &image, &kernel );
 		clock_t end = clock();
@@ -95,16 +97,14 @@ int main( int argc, char **argv )
 	printf("Average runtime : %f s \n", avg_time/NITER );
 	
 	
-
-
-	
-	
 	
 
 	printf("running the line-buffered algorithm %d times.\n", NITER);
 	
 	avg_time = 0;
 	for (int n = 0; n< NITER; ++n) {
+		printf("\rIteration %d", n);
+		fflush(stdout);
 		copy_pgm( &original_image, &image) ;
 		clock_t begin = clock();
    		pgm_blur_linebuf( &image, &kernel );
@@ -116,13 +116,30 @@ int main( int argc, char **argv )
 	
 	
 
-	printf("running the line-buffered + unrolling algorithm %d times.\n", NITER);
+	printf("running the line-buffered + x2 unrolling algorithm %d times.\n", NITER);
 	
 	avg_time = 0;
 	for (int n = 0; n< NITER; ++n) {
+		printf("\rIteration %d", n);
+		fflush(stdout);
 		copy_pgm( &original_image, &image) ;
 		clock_t begin = clock();
-   		pgm_blur_linebuf_unrol( &image, &kernel );
+   		pgm_blur_linebuf_unrolx2( &image, &kernel );
+		clock_t end = clock();
+		avg_time += (double)(end - begin) / CLOCKS_PER_SEC ;
+	}
+	
+	printf("Average runtime : %f s \n", avg_time/NITER );
+	
+	printf("running the line-buffered + x4 unrolling algorithm %d times.\n", NITER);
+	
+	avg_time = 0;
+	for (int n = 0; n< NITER; ++n) {
+		printf("\rIteration %d", n);
+		fflush(stdout);
+		copy_pgm( &original_image, &image) ;
+		clock_t begin = clock();
+   		pgm_blur_linebuf_unrolx4( &image, &kernel );
 		clock_t end = clock();
 		avg_time += (double)(end - begin) / CLOCKS_PER_SEC ;
 	}
@@ -132,7 +149,7 @@ int main( int argc, char **argv )
 	
 
         
-   
+   /*
 	//write the file header
 	if (write_pgm_header( &original_image , outfile, &header_offs)== -1 ) {
 		printf("Aborting.\n");
@@ -150,7 +167,7 @@ int main( int argc, char **argv )
 		return -1;
 	}
     printf("Output file \"%s\" has been written.\n",outfile);
-	
+	*/
 	
 
 	clear_pgm( &image);

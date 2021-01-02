@@ -2,11 +2,18 @@
 
 LC_ALL='en_US.UTF-8'
 
+INNAME=$1
+OUTNAME="output.pgm"
+#CHKNAME="output2.pgm"
+
+#OUTNAME="testout.pgm"
+#CHKNAME="test0.pgm"
 
 KER_FNAME='my_ker.txt'
 KER_TYPE='0'
-KER_SIZE='31 '
-KER_WGHT='0.5'
+KER_SIZE='51'
+KER_WGHT='0.2'
+
 
 MAKEFLAG=0
 RUNFLAG=0
@@ -24,6 +31,7 @@ CMD=''
 EXE='./blur.x' 
 MPI_EXE='./blur_mpi.x' 
 OMP_EXE='./blur_omp.x' 
+CHKFLAG=0
 
 LOGFLAG=0
 LOGFILE="log.txt"
@@ -39,8 +47,7 @@ then
 		echo "-perf |perf : will run the program under perf -e"
 		echo "-valgr | valgr : will run the program under valgrind"
 else
-FNAME=$1
-ARGS="-input ${FNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}"
+ARGS="-input ${INNAME} -output ${OUTNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}"
 #ARGS="-input ${FNAME} -kernel-file ${KER_FNAME}"
 shift
 while [[ $# -gt 0 ]]
@@ -87,6 +94,10 @@ case $1 in
 	-log|log)
 		LOGFLAG=1
 	;;
+	-check|check)
+		CHKFLAG=1
+		make check
+	;;
 esac
 shift
 done
@@ -119,7 +130,14 @@ printf '\n'
 echo ${CMD}
 printf '\n'
 eval ${CMD}
-
 printf '\n'
+if [[ CHKFLAG -eq 1 ]]
+then
+	printf '\n'
+	echo "Evaluating ${OUTNAME} against ${CHKNAME}"
+	./check_pgm.x ${OUTNAME} ${CHKNAME}
+	printf '\n'
+
+fi
 echo "done"
 

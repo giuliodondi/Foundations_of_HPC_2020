@@ -1,6 +1,7 @@
 #include <pgm.h>
 #include <kernel_t.h>
 #include <common_headers.h>
+#include <blur_pgm.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -26,7 +27,7 @@ int main( int argc, char **argv )
 	char infile[80] = "";
 	char outfile[80] = "output.pgm";
 	
-	pgm  original_image = new_pgm();
+	pgm  image = new_pgm();
 	kernel_t kernel;
 	long int header_offs=0;
 	
@@ -34,7 +35,7 @@ int main( int argc, char **argv )
 	//read command line parameters 
 	if (read_params_initialise_kernel(argc, argv, infile, outfile, &kernel) == -1 ) {
 		printf("Aborting.\n");
-		clear_pgm( &original_image);
+		clear_pgm( &image);
 		delete_kernel(&kernel);
 		return -1;
 	}
@@ -53,48 +54,50 @@ int main( int argc, char **argv )
 	
 
 	//read the file header
-	if (read_pgm_header( &original_image , infile, &header_offs)== -1 ) {
+	if (read_pgm_header( &image , infile, &header_offs)== -1 ) {
 		printf("Aborting.\n");
-		clear_pgm( &original_image);
+		clear_pgm( &image);
 		delete_kernel(&kernel);
 		return -1;
 	}
 	
 	//allocate memory for the image
-	if (allocate_pgm_memory( &original_image)== -1 ) {
+	if (allocate_pgm_memory( &image)== -1 ) {
 		printf("Aborting.\n");
-		clear_pgm( &original_image);
+		clear_pgm( &image);
 		delete_kernel(&kernel);
 		return -1;
 	}
 	
 	//read the image data
-	if (read_pgm_data( &original_image , infile, &header_offs)== -1 ) {
+	if (read_pgm_data( &image , infile, &header_offs)== -1 ) {
 		printf("Aborting.\n");
-		clear_pgm( &original_image);
+		clear_pgm( &image);
 		delete_kernel(&kernel);
 		return -1;
 	}
 	
     #ifdef INFO
     	printf("Input file \"%s\" has been read.\n",infile);
-		printf("The image is %d x %d.\n",original_image.size[0],original_image.size[1]);
+		printf("The image is %d x %d.\n",image.size[0],image.size[1]);
 	#endif
 	
 	#ifdef TIME
 	blur_t = clock();
 	#endif
-	//pgm_blur_copy( &original_image, &kernel );
-	//pgm_blur_linebuf( &original_image, &kernel );
-	pgm_blur_linebuf_unrol( &original_image, &kernel );
+	//pgm_blur_copy( &image, &kernel );
+	//pgm_blur_linebuf( &image, &kernel );
+	
+	blur_func_manager( &image, &kernel );
+	
 	#ifdef TIME
 	blur_t = clock() - blur_t;
 	#endif
 	
     //write the file header
-	if (write_pgm_header( &original_image , outfile, &header_offs)== -1 ) {
+	if (write_pgm_header( &image , outfile, &header_offs)== -1 ) {
 		printf("Aborting.\n");
-		clear_pgm( &original_image);
+		clear_pgm( &image);
 		delete_kernel(&kernel);
 		return -1;
 	}
@@ -102,9 +105,9 @@ int main( int argc, char **argv )
 	printf("The header is %li bytes.\n",header_offs);
 	#endif
 	//write the image data
-	if (write_pgm_data( &original_image , outfile)== -1 ) {
+	if (write_pgm_data( &image , outfile)== -1 ) {
 		printf("Aborting.\n");
-		clear_pgm( &original_image);
+		clear_pgm( &image);
 		delete_kernel(&kernel);
 		return -1;
 	}
@@ -119,7 +122,7 @@ int main( int argc, char **argv )
 	printf("Total time: %f seconds\n", (double)(total_t) / CLOCKS_PER_SEC );
 	#endif
 
-	clear_pgm( &original_image);
+	clear_pgm( &image);
 	delete_kernel(&kernel);
     return 0;
 } 

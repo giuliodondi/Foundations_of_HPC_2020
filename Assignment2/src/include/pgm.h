@@ -26,4 +26,6 @@ char write_pgm_data( pgm* input_img, const char *image_name) ;
 void endian_swap(pgm *image) ;
 int img_idx_convert(pgm* image, unsigned int* idx_arr) ;
 
+void compare_pgm( pgm *image1, pgm* image2, const char *outfile) ;
+
 #endif
