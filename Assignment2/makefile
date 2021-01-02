@@ -9,7 +9,7 @@ FLAGS = -Wall -Wextra  -march=native -O3 -g3
 INCLUDE = -I src/include/
 CFLAGS=
 
-CHK_OBJ = src/common/check_pgm.o  src/common/pgm_lib.o
+CHK_OBJ = src/check_pgm.o  src/common/pgm_lib.o
 GRADIENT_OBJ = src/common/generate_gradient.o
 COMMON_OBJ = src/common/blur_common_lib.o  src/common/pgm_lib.o src/common/kernel_lib.o 
 SERIAL_OBJ = src/blur_serial_main.o src/common/blur_pgm_lib.o
