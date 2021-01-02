@@ -9,3 +9,4 @@ void print_usage(char **argv) ;
 char is_number( char arg[] ) ;
 
 int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char* outfile , kernel_t* k );
+

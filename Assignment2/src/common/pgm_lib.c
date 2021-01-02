@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h> 
 #include <string.h>
+#include <math.h>
 
 
 
@@ -266,16 +267,20 @@ void compare_pgm( pgm *image1, pgm* image2, const char* outfile) {
 	
 	if ( image1->maxval == image2->maxval ) {
 		fprintf(f,"Images maximum value matches.\n");	
+		printf("Images maximum value matches.\n");	
 	} else {
 		fprintf(f,"Images maximum value doesn't match.\n");		
+		printf("Images maximum value doesn't match.\n");		
 	}
 	
-	if (sizematch==0) {
-		fprintf(f,"Image sizes do not match.\n");	
+	if (sizematch==0) {	
+		printf("Image sizes do not match.\n");	
 		return;
 	} else {
 		fprintf(f,"Image sizes match.\n");	
 		fprintf(f,"The images are %d x %d pixels.\n", image1->size[0] , image1->size[1]);	
+		printf("Image sizes match.\n");	
+		printf("The images are %d x %d pixels.\n", image1->size[0] , image1->size[1]);	
 	}
 			
 	
@@ -284,32 +289,105 @@ void compare_pgm( pgm *image1, pgm* image2, const char* outfile) {
 	char pixmatch = 1;
 	unsigned int idx;
 	int count=0;
-	int dif, maxdif=0;;
+	int dif, maxdif=0;
+	double pix_tol = 0.05*(double) image1->maxval;
 	
-	for (size_t i=0; i<image1->size[1]; ++i) {
-		for (size_t j=0; j<image1->size[0]; ++j) {
-			idx = i*image1->size[0] + j;
-			if (!(image1->data[idx] == image2->data[idx])) {
-				++count;
-				pixmatch=0;	
-				dif = image1->data[idx] - image2->data[idx];
-				if ( abs(dif) > abs(maxdif) ) {
-					maxdif = image1->data[idx] - image2->data[idx];
+	register size_t w = image1->size[0], h = image1->size[1];
+	
+	//first pass, so that the comparison results are written into the file header
+	if (image1->pix_bytes == 2) {
+		uint16_t* img1 = (uint16_t*)image1->data; 
+		uint16_t* img2= (uint16_t*)image2->data; 
+		
+
+		for (size_t i=0; i<h; ++i) {
+			for (size_t j=0; j<w; ++j) {
+				idx = i*w + j;
+				dif =  abs( img2[idx] - img1[idx]) ;
+				if ( dif > maxdif ) {
+					maxdif = dif;
 				}
-				#ifdef INFO
-					fprintf(f,"At ( %lu , %lu ) : %d %d diff : %d\n", i , j , image1->data[idx] , image2->data[idx], image1->data[idx] - image2->data[idx] );
-				#endif
-				
-			} 
+				if ( (double)dif > pix_tol ) {
+					++count;
+					if (pixmatch) {pixmatch=0; }
+				} 
+			}
+			
+		}
+		
+	} else {
+		uint8_t* img1 = (uint8_t*)image1->data; 
+		uint8_t* img2= (uint8_t*)image2->data; 
+		
+		for (size_t i=0; i<h; ++i) {
+			for (size_t j=0; j<w; ++j) {
+				idx = i*w + j;
+				dif =  abs( img2[idx] - img1[idx]) ;
+				if ( dif > maxdif ) {
+					maxdif = dif;
+				}
+				if ( (double)dif > pix_tol ) {
+					++count;
+					if (pixmatch) {pixmatch=0; }
+				} 
+			}
+			
 		}
 		
 	}
 	
+
 	if (pixmatch==1) {
-		fprintf(f,"Image pixels match.\n");	
+		fprintf(f,"All image pixels within tolerance.\n");	
+		printf("All image pixels within tolerance.\n");	
 	} else {
-		fprintf(f,"%d ( %.3f %%) pixels do not match.\n",count,((double)count/(double)img_size)*100);	
-		fprintf(f,"Max difference %d\n",maxdif);
+		fprintf(f,"%d ( %.4f %%) pixels outside tolerance.\n",count,((double)count/(double)img_size)*100);	
+		printf("%d ( %.4f %%) pixels outside tolerance.\n",count,((double)count/(double)img_size)*100);	
+	}
+	printf("Max difference %d\n",maxdif);
+	
+	if (pixmatch==0)  {
+	
+		if (image1->pix_bytes == 2) {
+			uint16_t* img1 = (uint16_t*)image1->data; 
+			uint16_t* img2= (uint16_t*)image2->data; 
+
+
+
+			for (size_t i=0; i<h; ++i) {
+				for (size_t j=0; j<w; ++j) {
+					idx = i*w + j;
+					dif =  abs( img2[idx] - img1[idx]) ;
+					if ( (double)dif > pix_tol ) {
+						++count;
+						if (pixmatch) {pixmatch=0; }
+						fprintf(f,"At ( %lu , %lu ) : %d %d diff : %d\n", i , j , img1[idx] , img2[idx], img2[idx] - img1[idx] );
+
+					} 
+				}
+
+			}
+
+		} else {
+			uint8_t* img1 = (uint8_t*)image1->data; 
+			uint8_t* img2= (uint8_t*)image2->data; 
+
+			double pix_tol = 0.05*(double) image1->maxval;
+			for (size_t i=0; i<h; ++i) {
+				for (size_t j=0; j<w; ++j) {
+					idx = i*w + j;
+					dif =  abs( img2[idx] - img1[idx]) ;
+					if ( (double)dif > pix_tol ) {
+						++count;
+						if (pixmatch) {pixmatch=0; }
+						fprintf(f,"At ( %lu , %lu ) : %d %d diff : %d\n", i , j , img1[idx] , img2[idx], img2[idx] - img1[idx] );
+
+					} 
+				}
+
+			}
+
+		}
 	}
 	
 	

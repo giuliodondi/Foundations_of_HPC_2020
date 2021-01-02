@@ -25,7 +25,7 @@ int main( int argc, char **argv )
 	
 	
 	char infile[80] = "";
-	char outfile[80] = "output.pgm";
+	char outfile[80] = "";
 	
 	pgm  image = new_pgm();
 	kernel_t kernel;
@@ -39,6 +39,7 @@ int main( int argc, char **argv )
 		delete_kernel(&kernel);
 		return -1;
 	}
+	
 	
 	/*
 	printf("ker size : %d x %d \n", kernel.size[0],kernel.size[1] );

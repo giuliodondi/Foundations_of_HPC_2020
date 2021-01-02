@@ -242,7 +242,7 @@ void pgm_blur_linebuf(  pgm* input_img , const kernel_t* k) {
 		//write the data in the last lines of the image
 		//when we reach the end of the buffer, wrap around as the last lines to write are at the top
 		for (size_t i = ydim - buffer_lines; i<ydim; ++i) {
-			memcpy( &image[i*xdim] , (&linebuf[xdim*j]), xdim*sizeof(int8_t) );	
+			memcpy( &image[i*xdim] , (&linebuf[xdim*j]), xdim*sizeof(int16_t) );	
 			j = (j + 1)%buffer_lines;
 		}
 		free(linebuf);
@@ -430,7 +430,7 @@ void pgm_blur_linebuf_unrolx2(  pgm* input_img , const kernel_t* k) {
 		//write the data in the last lines of the image
 		//when we reach the end of the buffer, wrap around as the last lines to write are at the top
 		for (size_t i = ydim - buffer_lines; i<ydim; ++i) {
-			memcpy( &image[i*xdim] , (&linebuf[xdim*j]), xdim*sizeof(int8_t) );	
+			memcpy( &image[i*xdim] , (&linebuf[xdim*j]), xdim*sizeof(int16_t) );	
 			j = (j + 1)%buffer_lines;
 		}
 		free(linebuf);
@@ -628,7 +628,7 @@ void pgm_blur_linebuf_unrolx4(  pgm* input_img , const kernel_t* k) {
 		//write the data in the last lines of the image
 		//when we reach the end of the buffer, wrap around as the last lines to write are at the top
 		for (size_t i = ydim - buffer_lines; i<ydim; ++i) {
-			memcpy( &image[i*xdim] , (&linebuf[xdim*j]), xdim*sizeof(int8_t) );	
+			memcpy( &image[i*xdim] , (&linebuf[xdim*j]), xdim*sizeof(int16_t) );	
 			j = (j + 1)%buffer_lines;
 		}
 		free(linebuf);

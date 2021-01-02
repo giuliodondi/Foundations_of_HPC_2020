@@ -141,7 +141,7 @@ void average_kernel(kernel_t* k) {
 	const size_t ker_s2 = k->size[0]*k->size[1];
 	
 	for (size_t i=0; i<ker_s2; ++i) {
-		kernel[i] = (float)1/ker_s2;
+		kernel[i] = 1/(double)ker_s2;
 	}
 	
 
@@ -153,7 +153,7 @@ void weighted_kernel(kernel_t* k, const double kernel_weight) {
 	double* kernel = k->ker;
 	const size_t ker_s2 = (k->size[0]*k->size[1]);
 	
-	const double w = ( 1 - kernel_weight)/(ker_s2-1);
+	const double w = ((double)( 1 - kernel_weight))/((double)(ker_s2-1));
 	
 	
 	for (size_t i=0; i<ker_s2; ++i) {
@@ -185,16 +185,15 @@ void gaussian_kernel_simple(kernel_t* k) {
 		binomial_v[i]	= newval;
 		norm2 += newval;
 	}
-	norm1 = norm1*norm2;
+	norm1 = 1/(norm1*norm2);
 
 
 	for (size_t i=0; i<k->size[1]; ++i) {
 		for (size_t j=0; j<k->size[0]; ++j) {
-			kernel[i*k->size[0] + j] =  binomial_v[i]*binomial_h[j]/norm1;
+			kernel[i*k->size[0] + j] =  binomial_v[i]*binomial_h[j]*norm1;
 		}
 	}
 
-	
 	k->ker = kernel;
 }
 

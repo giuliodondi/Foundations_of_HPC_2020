@@ -2,22 +2,28 @@
 
 LC_ALL='en_US.UTF-8'
 
-INNAME=$1
-OUTNAME="output.pgm"
+INNAME="$1"
+#OUTNAME="output.pgm"
 #CHKNAME="output2.pgm"
 
-#OUTNAME="testout.pgm"
-#CHKNAME="test0.pgm"
+OUTNAME="testout.pgm"
+CHKNAME="test0.pgm"
 
-KER_FNAME='my_ker.txt'
-KER_TYPE='0'
-KER_SIZE='51'
-KER_WGHT='0.2'
+KER_FNAME='-kernel-type my_ker.txt'
+KER_TYPE='-kernel-type 0'
+KER_SIZE='-kernel-size 101'
+KER_WGHT='-kernel-weight 0.2'
+
+ARGS="-input ${INNAME} -output  ${OUTNAME} ${KER_TYPE} ${KER_SIZE} ${KER_WGHT}"
+#ARGS="-input ${FNAME} -kernel-file ${KER_FNAME}"
 
 
 MAKEFLAG=0
 RUNFLAG=0
 MPIFLAG=0
+CHKFLAG=0
+LOGFLAG=0
+LOGFILE="log.txt"
 
 #VALGRINDCMD='valgrind --leak-check=full --show-leak-kinds=all --suppressions=/usr/share/openmpi/openmpi-valgrind.supp'
 VALGRINDCMD='valgrind'
@@ -28,13 +34,10 @@ MPI_PROCS=0
 MAKERULE=''
 CFLAGS=''
 CMD=''
-EXE='./blur.x' 
+SERIAL_EXE='./blur_serial.x' 
 MPI_EXE='./blur_mpi.x' 
 OMP_EXE='./blur_omp.x' 
-CHKFLAG=0
 
-LOGFLAG=0
-LOGFILE="log.txt"
 
 #check for missing required arguments
 if [[ $# -eq 0 ]]
@@ -47,8 +50,7 @@ then
 		echo "-perf |perf : will run the program under perf -e"
 		echo "-valgr | valgr : will run the program under valgrind"
 else
-ARGS="-input ${INNAME} -output ${OUTNAME} -kernel-type ${KER_TYPE} -kernel-size ${KER_SIZE} -kernel-weight ${KER_WGHT}"
-#ARGS="-input ${FNAME} -kernel-file ${KER_FNAME}"
+
 shift
 while [[ $# -gt 0 ]]
 do
@@ -89,14 +91,13 @@ case $1 in
 	;;
 	-serial|serial)
 		RUNFLAG=1
-		CMD="$EXE"
+		CMD="$SERIAL_EXE"
 	;;
 	-log|log)
 		LOGFLAG=1
 	;;
 	-check|check)
 		CHKFLAG=1
-		make check
 	;;
 esac
 shift
@@ -111,6 +112,10 @@ then
 	echo ${MAKERULE}
 	printf '\n'
 	eval ${MAKERULE}
+	if [[ CHKFLAG -eq 1 ]]
+	then
+		make check
+	fi
 fi
 
 if [[ $RUNFLAG -eq 1 ]]

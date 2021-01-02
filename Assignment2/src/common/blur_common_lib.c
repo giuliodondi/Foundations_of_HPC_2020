@@ -29,15 +29,64 @@ char is_number( char arg[] ) {
 	return 1;
 }
 
+
+void gen_out_name( char* infile, char* outfile, int type, int* size, double weight ) {
+	strcpy( outfile , infile );
+	char* ext = ".pgm";
+	char numbuf[20];
+	
+	*(strstr(outfile, ext)) = '\0';
+	
+	strcat(outfile,".b_#");
+	sprintf(numbuf,"%d",type);
+	strcat(outfile,numbuf);
+	
+	strcat(outfile,"_#");
+	sprintf(numbuf,"%d",size[0]);
+	strcat(outfile,numbuf);
+	
+	strcat(outfile,"x#");
+	sprintf(numbuf,"%d",size[1]);
+	strcat(outfile,numbuf);
+	
+	if (type==1) {	
+		sprintf(numbuf,"%.16f",weight);
+
+		char* p1 = numbuf;
+		char* p2 = numbuf;
+		while (*p1) {
+			*p2 = *p1;
+			p2 += (*p2 != '.');
+			++p1;
+		}
+		*p2 = '\0';
+		p1 = numbuf + strlen(numbuf) - 1;
+		while (*p1) {
+			if( *p1 == '0' ) {
+				*p1 = '\0';
+			} else {
+				break;	
+			}
+			--p1;
+		}
+		
+		strcat(outfile,"_#");
+		strcat(outfile,numbuf);
+	}
+	strcat(outfile,ext);
+}
+
 //handles the program parameters and initialises the kernel struct
 int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char* outfile , kernel_t* k ) {
+	
+	char out_file_flag=0;
 	
 	char kernel_file_flag=0;
 	char kernel_fname[80] = "";
 	int kernel_type=-1;
 	int kernel_size[2]={-1,-1};
 	int tmp;
-	float kernel_weight = -1;
+	double kernel_weight = -1;
 	
 
 	
@@ -47,6 +96,7 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 			strcpy(infile,argv[arg+1]);
 		}
 		else if (strcmp(argv[arg], "-output")==0 ) {
+			out_file_flag=1;
 			strcpy(outfile,argv[arg+1]);	
 		}
 		else if (strcmp(argv[arg], "-kernel-file")==0 ) {
@@ -127,8 +177,12 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 		return -1;
 	} 
 	
+	if (! out_file_flag) {
+		//generate default output name
+		gen_out_name( infile, outfile, kernel_type, kernel_size , kernel_weight );
+	}
+	
 	if (kernel_file_flag) {
-		
 		if (kernel_init_from_file( k, kernel_fname) == -1 ) {
 			printf("Error during kernel initialisation.\n");	
 			return -1;
@@ -153,11 +207,7 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 			return -1;
 		}
 	}
-	
-	
-	
-
-	
 	return 0;
 	
 }
+
