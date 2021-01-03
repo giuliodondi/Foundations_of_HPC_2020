@@ -1,7 +1,7 @@
 COMPILER = gcc
 MPI_COMPILER = mpicc 
 OMP_COMPILER = gcc -fopenmp 
-GRADIENT_EXE_NAME = generate_gradient.x
+GEN_EXE_NAME = generate_pgm.x
 SERIAL_EXE_NAME = blur_serial.x
 MPI_EXE_NAME = blur_mpi.x
 OMP_EXE_NAME = blur_omp.x
@@ -10,7 +10,7 @@ INCLUDE = -I src/include/
 CFLAGS=
 
 CHK_OBJ = src/check_pgm.o  src/common/pgm_lib.o
-GRADIENT_OBJ = src/common/generate_gradient.o
+GEN_OBJ = src/generate_pgm.o src/common/pgm_lib.o
 COMMON_OBJ = src/common/blur_common_lib.o  src/common/pgm_lib.o src/common/kernel_lib.o 
 SERIAL_OBJ = src/blur_serial_main.o src/common/blur_pgm_lib.o
 SERIALTEST_OBJ = src/blur_serial_main_perftest.o src/common/blur_pgm_lib.o
@@ -26,8 +26,8 @@ default: serial
 
 all : serial mpi omp
 
-gradient: $(COMMON_OBJ)  $(GRADIENT_OBJ)
-	$(COMPILER) $^ -o $(GRADIENT_EXE_NAME) $(FLAGS) -lm
+gen:  $(GEN_OBJ)
+	$(COMPILER) $^ -o $(GEN_EXE_NAME) $(FLAGS) -lm
 
 serial: $(COMMON_OBJ)  $(SERIAL_OBJ)
 	$(COMPILER) $^ -o $(SERIAL_EXE_NAME) $(FLAGS) -lm
@@ -48,7 +48,7 @@ check: $(CHK_OBJ)
 
 clean:
 	rm -rf $(SERIAL_OBJ) $(SERIALTEST_OBJ) $(COMMON_OBJ) $(OMP_OBJ) $(MPI_OBJ) $(CHK_OBJ)
-	rm -rf $(SERIAL_EXE_NAME) $(OMP_EXE_NAME) $(MPI_EXE_NAME) $(GRADIENT_EXE_NAME) check_pgm.x 
+	rm -rf $(SERIAL_EXE_NAME) $(OMP_EXE_NAME) $(MPI_EXE_NAME) $(GEN_EXE_NAME) check_pgm.x 
 	rm -rf $(MOD)
 	
 .PHONY: clean default

@@ -36,7 +36,6 @@ int main( int argc, char **argv )
 	if (read_params_initialise_kernel(argc, argv, infile, outfile, &kernel) == -1 ) {
 		printf("Aborting.\n");
 		clear_pgm( &image);
-		delete_kernel(&kernel);
 		return -1;
 	}
 	

@@ -9,7 +9,8 @@
 
 
 void print_usage(char **argv) {
-	printf("Usage: %s -input input_img.pgm -kernel_type t -kernel-size s (optional) -output output_img.pgm -kernel-weight w.\n",argv[0]);
+	printf("Usage: %s -input input_img.pgm -kernel_type type -kernel-size size1 [size2] \n",argv[0]);
+	printf("			[-output output_img.pgm] [-kernel-weight weight]\n");
 }
 
 char is_number( char arg[] ) {
@@ -88,7 +89,11 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 	int tmp;
 	double kernel_weight = -1;
 	
-
+	if ( argc < 3 ) {
+		printf("Not enough arguments.\n");
+		print_usage(argv);
+		return -1;
+	}
 	
 	//switch doesn't work with strings unfortunately
 	for( int arg = 1; arg < argc; arg+=2 )  {
