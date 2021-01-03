@@ -35,13 +35,13 @@ void generate_image(pgm* image, int type) {
 		} else {
 			uint16_t* img = (uint16_t*)image->data; 
 			for ( size_t i = 0; i< h; ++i) {
-				for (size_t j=0; i< w; ++j) {
+				for (size_t j=0; j< w; ++j) {
 					pixel = ((double)rand() )*scale;
-					img[i*w+ j] = (uint16_t)pixel;
+					img[i*w + j] = (uint16_t)pixel;
+
 				}
 				
 			}
-
 		}
 	}
 	
