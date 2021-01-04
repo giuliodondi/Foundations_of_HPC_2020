@@ -14,6 +14,7 @@
 #include <mpi.h>
 #define USE MPI
 
+/*aa*/
 
 
 int main( int argc, char **argv ) 

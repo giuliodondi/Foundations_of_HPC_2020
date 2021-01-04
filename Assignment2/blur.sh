@@ -3,18 +3,28 @@
 LC_ALL='en_US.UTF-8'
 
 INNAME="$1"
-#OUTNAME="output.pgm"
-#CHKNAME="output2.pgm"
+OUTNAME="output.pgm"
+CHKNAME="output2.pgm"
 
-OUTNAME="testout.pgm"
-CHKNAME="test0.pgm"
+#OUTNAME="testout.pgm"
+#CHKNAME="test0.pgm"
 
 KER_FNAME='-kernel-type my_ker.txt'
 KER_TYPE='-kernel-type 0'
-KER_SIZE='-kernel-size 101'
+KER_SIZE='-kernel-size 31'
 KER_WGHT='-kernel-weight 0.2'
 
-ARGS="-input ${INNAME} -output  ${OUTNAME} ${KER_TYPE} ${KER_SIZE} ${KER_WGHT}"
+if [[ -n "${INNAME}" ]]
+then
+	ARGS=" ${ARGS} -input ${INNAME}"
+fi
+if [[ -n "${OUTNAME}" ]]
+then
+	ARGS="${ARGS} -output ${OUTNAME}"
+fi
+
+
+ARGS=" ${ARGS} ${KER_TYPE} ${KER_SIZE} ${KER_WGHT}"
 #ARGS="-input ${FNAME} -kernel-file ${KER_FNAME}"
 
 
@@ -29,7 +39,7 @@ LOGFILE="log.txt"
 VALGRINDCMD='valgrind'
 PERFCMD='perf stat -e task-clock,cycles,instructions,cache-references,cache-misses,branches,branch-misses'
 #PERFCMD='perf record -e task-clock,cycles,instructions,cache-references,cache-misses,branches,branch-misses'
-MPICMD='mpirun -np'
+MPICMD='mpirun --mca btl "^openib" --map-by core -np'
 MPI_PROCS=0
 MAKERULE=''
 CFLAGS=''
@@ -83,8 +93,8 @@ case $1 in
 		RUNFLAG=1
 		shift
 		export OMP_DYNAMIC=false
-		#export OMP_PROC_BIND=cores
-		#export OMP_PROC_BIND=spread
+		export OMP_PLACES=cores
+		#export OMP_PROC_BIND=close
 		export OMP_WAIT_POLICY=active 
 		export OMP_NUM_THREADS=$1
 		CMD="$OMP_EXE"
@@ -140,7 +150,8 @@ if [[ CHKFLAG -eq 1 ]]
 then
 	printf '\n'
 	echo "Evaluating ${OUTNAME} against ${CHKNAME}"
-	./check_pgm.x ${OUTNAME} ${CHKNAME}
+	CMD="./check_pgm.x ${OUTNAME} ${CHKNAME}"
+	eval ${CMD}
 	printf '\n'
 
 fi

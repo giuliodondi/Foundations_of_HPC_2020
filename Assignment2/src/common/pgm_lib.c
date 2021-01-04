@@ -246,6 +246,9 @@ int img_idx_convert(pgm* image, unsigned int* idx_arr) {
 	return  (image->size[0]*idx_arr[1]+ idx_arr[0])*image->pix_bytes;
 }
 
+
+
+
 void compare_pgm( pgm *image1, pgm* image2, const char* outfile) {
 	
 	char sizematch = 1;
