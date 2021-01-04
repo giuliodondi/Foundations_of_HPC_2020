@@ -242,7 +242,7 @@ void endian_swap(pgm *image) {
 
 
 //converts a row-column pair of indices into a linear array index for the image
-int img_idx_convert(pgm* image, unsigned int* idx_arr) {
+int img_idx_convert(pgm* image,  int* idx_arr) {
 	return  (image->size[0]*idx_arr[1]+ idx_arr[0])*image->pix_bytes;
 }
 

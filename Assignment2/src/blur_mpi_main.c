@@ -14,7 +14,6 @@
 #include <mpi.h>
 #define USE MPI
 
-/*aa*/
 
 
 int main( int argc, char **argv ) 
@@ -37,8 +36,18 @@ int main( int argc, char **argv )
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &proc_id);
 	
+	p_grid grid;
+	build_grid(&grid,nprocs);
+
+	#ifdef INFO
+	if (proc_id==0) {
+		printf("Threads arranged on a grid %d x %d\n",grid.size[0],grid.size[1]);
+	}
+	#endif
+
+
 	
-	//variables common to all processes;
+
 	pgm  local_image = new_pgm();
 	pgm  original_image = new_pgm();
 	kernel_t kernel;
@@ -50,7 +59,7 @@ int main( int argc, char **argv )
 	//read command-line arguments and initialise the variables
 	
 	char infile[80] = "";
-	char outfile[80] = "output.pgm";
+	char outfile[80] = "";
 	
 	if (read_params_initialise_kernel(argc, argv, infile, outfile, &kernel) == -1 ) {
 		printf("Aborting.\n");
@@ -77,7 +86,7 @@ int main( int argc, char **argv )
 		header_read_time = MPI_Wtime() - header_read_time;
 		#endif
 		 #ifdef INFO
-			printf("Input file \"%s\" has been read.\n",infile);
+			printf("Input file \"%s\" has been opened.\n",infile);
 			printf("The image is %d x %d.\n",original_image.size[0],original_image.size[1]);
 		#endif
 	}
@@ -90,13 +99,20 @@ int main( int argc, char **argv )
 	MPI_Bcast(&original_image.pix_bytes, 1, MPI_INT, 0, MPI_COMM_WORLD);
 	
 	
+
+	
 	
 	//initialise cells with halo and without halo
-	get_cell_1D( nprocs, proc_id, &cell_halo, &original_image, kernel.halfsize);
-	get_cell_1D( nprocs, proc_id, &cell_nohalo, &original_image, halowidth0);
+	memcpy( cell_halo.coords , get_grid_coords(  &grid, proc_id ) , 2*sizeof(unsigned int) );
+	memcpy( cell_nohalo.coords , cell_halo.coords , 2*sizeof(unsigned int) );
+
+	get_cell_grid( &grid, &cell_halo, &original_image, kernel.halfsize);
+	get_cell_grid( &grid, &cell_nohalo, &original_image, halowidth0);
+	
 	
 	#ifdef INFO
-	printf("\nCell %d is %d x %d , starts at img line %d col %d .\n", proc_id, cell_halo.size[1], cell_halo.size[0], cell_halo.idx[1], cell_halo.idx[0] );
+	printf("\nCell %d has coords ( %d , %d ) \n", proc_id, cell_halo.coords[0] , cell_halo.coords[1] );
+	printf("Cell %d  has size %d x %d , starts at img line %d col %d .\n", proc_id, cell_halo.size[0], cell_halo.size[1], cell_halo.idx[1], cell_halo.idx[0] );
 	printf("Cell %d halos : (%d %d %d %d).\n", proc_id, cell_halo.halos[0], cell_halo.halos[1], cell_halo.halos[2], cell_halo.halos[3] );
 	printf("\n");
 	#endif
@@ -120,9 +136,39 @@ int main( int argc, char **argv )
 	}
 	
 	
+	
+	
+	//custom mpi datatype for the pixel
+	MPI_Datatype pixel;
+	
+	if (original_image.pix_bytes == 2) {
+		pixel= MPI_UINT16_T;
+	} else {
+		pixel = MPI_UINT8_T;
+	}
+	MPI_Type_commit ( &pixel );
+	
+	
 	//parallel file read
-	//wortk out the beginning of the buffer in the original image
-	my_data_offs = header_offs + img_idx_convert(&original_image, cell_halo.idx);
+	my_data_offs = header_offs;
+	
+	//create subarray describing the data with halos within the original image
+	int dtype_size[2];
+	int dtype_subsize[2];
+	int dtype_idx[2];
+
+	
+	dtype_size[0] = original_image.size[1];
+	dtype_size[1] = original_image.size[0];
+	dtype_subsize[0] = cell_halo.size[1];
+	dtype_subsize[1] = cell_halo.size[0];
+	dtype_idx[0] = cell_halo.idx[1];
+	dtype_idx[1] = cell_halo.idx[0];
+	
+	MPI_Datatype img_subarr_halo;	
+	MPI_Type_create_subarray(2, dtype_size, dtype_subsize, dtype_idx ,MPI_ORDER_C, pixel, &img_subarr_halo);
+	MPI_Type_commit(&img_subarr_halo);
+	
 	
 	#ifdef TIME
 	read_time = MPI_Wtime();
@@ -130,7 +176,8 @@ int main( int argc, char **argv )
 	
 	MPI_File in_file;
 	MPI_File_open(MPI_COMM_WORLD, infile, MPI_MODE_RDONLY,MPI_INFO_NULL, &in_file);
-	MPI_File_read_at(in_file,  my_data_offs, &local_image.data[0]  , cell_halo.size_ , MPI_UINT8_T, &status);
+	MPI_File_set_view(in_file, my_data_offs, pixel , img_subarr_halo, "native", MPI_INFO_NULL);
+	MPI_File_read(in_file, &local_image.data[0], cell_halo.size_, pixel,  &status);
 	MPI_File_close(&in_file);
 	
 	endian_swap(&local_image);
@@ -140,13 +187,20 @@ int main( int argc, char **argv )
 	read_time2 += read_time*read_time;
 	#endif
 	
+	#ifdef INFO
+		printf("Process %d has read the buffer.\n",proc_id);
+	#endif
+	
+	 MPI_Type_free(&img_subarr_halo);
 	
 	//blurring
 	#ifdef TIME
 	blur_time = MPI_Wtime();
 	#endif
 	
+	
 	blur_halo_func_manager( &local_image, &kernel , cell_halo.halos);
+	
 	
 	#ifdef TIME
 	blur_time = MPI_Wtime() - blur_time;
@@ -154,6 +208,7 @@ int main( int argc, char **argv )
 	#endif
 	
 	delete_kernel(&kernel);
+	
 	
 	if (proc_id == 0) {
 		#ifdef TIME
@@ -174,8 +229,33 @@ int main( int argc, char **argv )
 	}
 	MPI_Bcast(&header_offs, 1, MPI_OFFSET, 0, MPI_COMM_WORLD);
 	
-
-	my_data_offs = header_offs + img_idx_convert(&original_image, cell_nohalo.idx);
+	
+	my_data_offs = header_offs;
+	
+	//create subarray describing the data without halos within the original image
+	dtype_size[0] = original_image.size[1];
+	dtype_size[1] = original_image.size[0];
+	dtype_subsize[0] = cell_nohalo.size[1];
+	dtype_subsize[1] = cell_nohalo.size[0];
+	dtype_idx[0] = cell_nohalo.idx[1];
+	dtype_idx[1] = cell_nohalo.idx[0];
+	
+	MPI_Datatype img_subarr_nohalo;
+	MPI_Type_create_subarray(2, dtype_size, dtype_subsize, dtype_idx ,MPI_ORDER_C, pixel, &img_subarr_nohalo);
+	MPI_Type_commit(&img_subarr_nohalo);
+	
+	//create subarray describing the data without halos within the local image buffer (which contains halos)
+	dtype_size[0] = cell_halo.size[1];
+	dtype_size[1] = cell_halo.size[0];
+	dtype_subsize[0] = cell_nohalo.size[1];
+	dtype_subsize[1] = cell_nohalo.size[0];
+	dtype_idx[0] = cell_halo.halos[1];
+	dtype_idx[1] = cell_halo.halos[0];
+	
+	MPI_Datatype cell_subarr_nohalo;
+	MPI_Type_create_subarray(2, dtype_size, dtype_subsize, dtype_idx ,MPI_ORDER_C, pixel, &cell_subarr_nohalo);
+	MPI_Type_commit(&cell_subarr_nohalo);
+	
 	//parallel write
 	#ifdef TIME
 	write_time = MPI_Wtime();
@@ -183,23 +263,31 @@ int main( int argc, char **argv )
 	
 	endian_swap(&local_image);
 	
+	
+	
 	MPI_File out_file;
 	MPI_File_open(MPI_COMM_WORLD, outfile, MPI_MODE_CREATE | MPI_MODE_WRONLY,MPI_INFO_NULL, &out_file);
-
-	MPI_File_write_at(out_file,  my_data_offs, &local_image.data[trim_halo_1D ( &cell_halo, original_image.pix_bytes)]  , cell_nohalo.size_ , MPI_UINT8_T, &status);
-	
+	MPI_File_set_view(out_file, my_data_offs, pixel , img_subarr_nohalo, "native", MPI_INFO_NULL);
+	MPI_File_write(out_file, &local_image.data[0], 1 , cell_subarr_nohalo,  &status);
 	MPI_File_close(&out_file);
 	
+
 	#ifdef TIME
 	write_time = MPI_Wtime() - write_time;
 	write_time2 += write_time*write_time;
 	#endif
 	
+	
+	#ifdef INFO
 	if (proc_id==0) {
-		#ifdef INFO
 		printf("Output file \"%s\" has been written.\n",outfile);
-	#endif
 	}
+	#endif
+	
+	
+	MPI_Type_free(&img_subarr_nohalo);
+	MPI_Type_free(&cell_subarr_nohalo);
+	//MPI_Type_free(&pixel);
 	
 	clear_pgm( &original_image);
 	clear_pgm( &local_image);
@@ -248,7 +336,7 @@ int main( int argc, char **argv )
 	
 	#endif
 	
-	
+	 
 	MPI_Finalize();
 	return 0;
 	

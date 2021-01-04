@@ -11,7 +11,7 @@
 
 
 
-void pgm_blur_halo_unrolx2(  pgm* input_img , const kernel_t* k,  const unsigned int* halos) {
+void pgm_blur_halo_unrolx2(  pgm* input_img , const kernel_t* k,  const int* halos) {
 	
 	
 	register const size_t xdim = input_img->size[0] ;
@@ -260,7 +260,7 @@ void pgm_blur_halo_unrolx2(  pgm* input_img , const kernel_t* k,  const unsigned
 }
 
 
-void pgm_blur_halo_unrolx4(  pgm* input_img , const kernel_t* k,  const unsigned int* halos) {
+void pgm_blur_halo_unrolx4(  pgm* input_img , const kernel_t* k,  const int* halos) {
 	
 	
 	register const size_t xdim = input_img->size[0] ;
@@ -499,7 +499,7 @@ void pgm_blur_halo_unrolx4(  pgm* input_img , const kernel_t* k,  const unsigned
 }
 
 
-void  blur_halo_func_manager( pgm* input_img , const kernel_t* k, const unsigned int* halos) {
+void  blur_halo_func_manager( pgm* input_img , const kernel_t* k, const int* halos) {
 	if (k->halfsize[0]>=4) {
 		pgm_blur_halo_unrolx4(input_img,k,halos);
 	}

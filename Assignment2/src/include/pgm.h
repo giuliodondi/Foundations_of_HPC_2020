@@ -6,8 +6,8 @@
 
 //pgm struct definition
 typedef struct {
-	unsigned int maxval;
-	unsigned int size[2];
+	int maxval;
+	int size[2];
 	uint8_t pix_bytes;
 	uint8_t* data;
 } pgm;
@@ -23,7 +23,7 @@ char read_pgm_data( pgm* input_img, const char *image_name, long int* skip_heade
 char write_pgm_header( pgm* input_img, const char *image_name, long int* header_offs);
 char write_pgm_data( pgm* input_img, const char *image_name) ;
 void endian_swap(pgm *image) ;
-int img_idx_convert(pgm* image, unsigned int* idx_arr) ;
+int img_idx_convert(pgm* image, int* idx_arr) ;
 
 void compare_pgm( pgm *image1, pgm* image2, const char *outfile) ;
 

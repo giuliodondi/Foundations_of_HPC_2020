@@ -11,17 +11,17 @@
 #include <math.h>
 
 
-void split_dimension(const int dim, const unsigned int nprocs, img_cell* proc_cell, const pgm* image, const unsigned int* kerhwidth ) {
+void split_dimension(const int dim, const int nprocs, img_cell* proc_cell, const pgm* image, const int* kerhwidth ) {
 
 	
 	float baselines = ((float)image->size[dim])/((float)nprocs);
 	
-	unsigned int h1 = (int)floor(baselines);
-	unsigned int h2 = (int)ceil(baselines);
+	int h1 = (int)floor(baselines);
+	int h2 = (int)ceil(baselines);
 	
-	unsigned int n1=0, n2=0, tot_size;
+	int n1=0, n2=0, tot_size;
 	
-	for (unsigned int i=1; i<nprocs; ++i) {
+	for (int i=1; i<nprocs; ++i) {
 		n1=i;
 		n2 =(nprocs - i) ;
 		tot_size =n1*h1 + n2*h2 ;
@@ -88,7 +88,7 @@ void split_dimension(const int dim, const unsigned int nprocs, img_cell* proc_ce
 		}
 		
 		//similar check for the lower halo
-		unsigned int cell_lastline = proc_cell->idx[dim] + proc_cell->size[dim];
+		int cell_lastline = proc_cell->idx[dim] + proc_cell->size[dim];
 		if ( image->size[dim] < cell_lastline + kerhwidth[dim] ) {
 			proc_cell->halos[dim+2] =  image->size[dim] - cell_lastline;
 		} else {
@@ -111,7 +111,7 @@ void get_cell_1D(p_grid* grid, img_cell* proc_cell, const pgm* image, const unsi
 	proc_cell->halos[2] = 0;
 	
 	//dimension y
-	split_dimension(1, grid->size[1], proc_cell, image, kerhwidth );
+	split_dimension(1, grid->size[1], proc_cell, image, (int*)kerhwidth );
 	
 	proc_cell->size_ = proc_cell->size[0]*proc_cell->size[1]*image->pix_bytes;
 }
@@ -122,10 +122,10 @@ void get_cell_grid(p_grid* grid, img_cell* proc_cell, const pgm* image, const un
 	
 	
 	//dimension x 
-	split_dimension(0, grid->size[0], proc_cell, image, kerhwidth );
+	split_dimension(0, grid->size[0], proc_cell, image, (int*)kerhwidth );
 	
 	//dimension y
-	split_dimension(1, grid->size[1], proc_cell, image, kerhwidth );
+	split_dimension(1, grid->size[1], proc_cell, image, (int*)kerhwidth );
 	//proc_cell->size[1] = image->size[1];
 	//proc_cell->idx[1] = 0;
 	//proc_cell->halos[1] = 0;
@@ -155,7 +155,7 @@ void read_img_buffer( pgm* image , pgm* local_image, img_cell* cell_halo) {
 	
 	int cell_line_size_halo=cell_halo->size[0]*image->pix_bytes;
 	
-	for (size_t i=cell_halo->idx[1]; i< (cell_halo->idx[1] + cell_halo->size[1]); ++i) {	
+	for (int i=cell_halo->idx[1]; i< (cell_halo->idx[1] + cell_halo->size[1]); ++i) {	
 		
 			memcpy( &(local_image->data[ cell_idx ]) , &(image->data[ img_idx] ) , cell_line_size_halo*sizeof(uint8_t) );
 		
@@ -175,7 +175,7 @@ void write_img_buffer( pgm* image , pgm* local_image, img_cell* cell_halo, img_c
 	int cell_line_size_nohalo=cell_nohalo->size[0]*image->pix_bytes;
 	int cell_line_size_halo=cell_halo->size[0]*image->pix_bytes;
 	
-	for (size_t i=cell_nohalo->idx[1]; i< (cell_nohalo->idx[1] + cell_nohalo->size[1]); ++i) {			
+	for (int i=cell_nohalo->idx[1]; i< (cell_nohalo->idx[1] + cell_nohalo->size[1]); ++i) {			
 			memcpy(  &(image->data[ img_idx] ) , &(local_image->data[ cell_idx ]) , cell_line_size_nohalo*sizeof(uint8_t) );
 		
 			cell_idx += cell_line_size_halo;

@@ -4,7 +4,7 @@
 #define P_GRID_H
 
 typedef struct {
-	unsigned int size[2];
+	int size[2];
 } p_grid;
 
 
