@@ -238,7 +238,7 @@ void pgm_blur_halo_unrolx2(  pgm* input_img , const kernel_t* k,  const unsigned
 			//therefore we write the buffer lines from the beginning until the last valid line
 			size_t j = 0;
 			for (size_t i = bound_u; i<bound_d; ++i) {
-				memcpy( &image[i*xdim + bound_l] , (&linebuf[linebuf_length*j]), linebuf_length*sizeof(int16_t));
+				memcpy( &image[i*xdim + bound_l] , (&linebuf[linebuf_length*j]), linebuf_length*sizeof(int8_t));
 				++j;
 			}
 		}
@@ -251,7 +251,7 @@ void pgm_blur_halo_unrolx2(  pgm* input_img , const kernel_t* k,  const unsigned
 			//write the data in the last lines of the image
 			//when we reach the end of the buffer, wrap around as the last lines to write are at the top
 			for (size_t i = bound_d - buffer_lines; i<bound_d ; ++i) {
-				memcpy( &image[i*xdim + bound_l] , (&linebuf[linebuf_length*j]), linebuf_length*sizeof(int16_t));
+				memcpy( &image[i*xdim + bound_l] , (&linebuf[linebuf_length*j]), linebuf_length*sizeof(int8_t));
 				j = (j + 1)%buffer_lines;
 			}
 		}
@@ -477,7 +477,7 @@ void pgm_blur_halo_unrolx4(  pgm* input_img , const kernel_t* k,  const unsigned
 			//therefore we write the buffer lines from the beginning until the last valid line
 			size_t j = 0;
 			for (size_t i = bound_u; i<bound_d; ++i) {
-				memcpy( &image[i*xdim + bound_l] , (&linebuf[linebuf_length*j]), linebuf_length*sizeof(int16_t));
+				memcpy( &image[i*xdim + bound_l] , (&linebuf[linebuf_length*j]), linebuf_length*sizeof(int8_t));
 				++j;
 			}
 		}
@@ -490,7 +490,7 @@ void pgm_blur_halo_unrolx4(  pgm* input_img , const kernel_t* k,  const unsigned
 			//write the data in the last lines of the image
 			//when we reach the end of the buffer, wrap around as the last lines to write are at the top
 			for (size_t i = bound_d - buffer_lines; i<bound_d ; ++i) {
-				memcpy( &image[i*xdim + bound_l] , (&linebuf[linebuf_length*j]), linebuf_length*sizeof(int16_t));
+				memcpy( &image[i*xdim + bound_l] , (&linebuf[linebuf_length*j]), linebuf_length*sizeof(int8_t));
 				j = (j + 1)%buffer_lines;
 			}
 		}

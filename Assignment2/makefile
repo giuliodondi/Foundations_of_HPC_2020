@@ -14,8 +14,8 @@ GEN_OBJ = src/generate_pgm.o src/common/pgm_lib.o
 COMMON_OBJ = src/common/blur_common_lib.o  src/common/pgm_lib.o src/common/kernel_lib.o 
 SERIAL_OBJ = src/blur_serial_main.o src/common/blur_pgm_lib.o
 SERIALTEST_OBJ = src/blur_serial_main_perftest.o src/common/blur_pgm_lib.o
-OMP_OBJ = src/blur_omp_main.o src/common/blur_pgm_halo_lib.c.o src/common/img_cell.o
-MPI_OBJ = src/blur_mpi_main.o src/common/blur_pgm_halo_lib.c.o src/common/img_cell.o
+OMP_OBJ = src/blur_omp_main.o src/common/blur_pgm_halo_lib.o src/common/img_cell.o
+MPI_OBJ = src/blur_mpi_main.o src/common/blur_pgm_halo_lib.o src/common/img_cell.o
 
 
 
