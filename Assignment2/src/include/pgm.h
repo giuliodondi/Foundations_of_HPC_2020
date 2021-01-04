@@ -6,7 +6,6 @@
 
 //pgm struct definition
 typedef struct {
-	
 	unsigned int maxval;
 	unsigned int size[2];
 	uint8_t pix_bytes;

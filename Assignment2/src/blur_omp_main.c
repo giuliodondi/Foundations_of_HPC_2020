@@ -1,5 +1,6 @@
 #include <pgm.h>
 #include <kernel_t.h>
+#include <p_grid.h>
 #include <img_cell.h>
 #include <common_headers.h>
 #include <blur_pgm.h>
@@ -81,16 +82,28 @@ int main( int argc, char **argv )
 		int nprocs = omp_get_num_threads();
 		int proc_id =  omp_get_thread_num();
 		
+		p_grid grid;
+		build_grid(&grid,nprocs);
+		//grid.size[0]= 1 ;
+		//grid.size[1] = nprocs;
+		
+		#ifdef INFO
+		if (proc_id==0) {
+			printf("Threads arranged on a grid %d x %d\n",grid.size[0],grid.size[1]);
+		}
+		#endif
+		
+		
 		img_cell cell_halo, cell_nohalo;
 		pgm  local_image = new_pgm();
-		int cell_idx, img_idx;
 		unsigned int halowidth0[2] = {0,0};
+		kernel_t local_kernel;
+		
 		#ifdef TIME
 			double buf_read_time, blur_time, buf_write_time;
 		#endif
 		
 		//create a local copy of the kernel
-		kernel_t local_kernel;
 		if (copy_kernel(&local_kernel, &kernel)== -1 ) {
 			printf("Thread %d couldn't allocate memory for the local kernel.\n",proc_id);
 			//return -1;	
@@ -98,9 +111,21 @@ int main( int argc, char **argv )
 		
 		
 		//initialise cells with halo and without halo
-		get_cell_1D( nprocs, proc_id, &cell_halo, &original_image, local_kernel.halfsize);
-		get_cell_1D( nprocs, proc_id, &cell_nohalo, &original_image, halowidth0);
+		memcpy( cell_halo.coords , get_grid_coords(  &grid, proc_id ) , 2*sizeof(unsigned int) );
+		memcpy( cell_nohalo.coords , cell_halo.coords , 2*sizeof(unsigned int) );
+		
+		get_cell_grid( &grid, &cell_halo, &original_image, local_kernel.halfsize);
+		get_cell_grid( &grid, &cell_nohalo, &original_image, halowidth0);
 
+		
+		#ifdef INFO
+		printf("\nCell %d has coords ( %d , %d ) \n", proc_id, cell_halo.coords[0] , cell_halo.coords[1] );
+		printf("Cell %d  has size %d x %d , starts at img line %d col %d .\n", proc_id, cell_halo.size[0], cell_halo.size[1], cell_halo.idx[1], cell_halo.idx[0] );
+		printf("Cell %d halos : (%d %d %d %d).\n", proc_id, cell_halo.halos[0], cell_halo.halos[1], cell_halo.halos[2], cell_halo.halos[3] );
+		printf("\n");
+		#endif
+		
+		
 		
 		//touch the image buffer with the nohalo parameters
 		{
@@ -146,7 +171,6 @@ int main( int argc, char **argv )
 		#pragma omp barrier
 		
 		
-		
 		//initialise the working image
 		//get the pointer to the beginnig of the memory section
 		local_image.size[0] = cell_halo.size[0];
@@ -166,14 +190,13 @@ int main( int argc, char **argv )
 			//return -1;
 		}
 		
-		img_idx = img_idx_convert(&original_image, cell_halo.idx);
-		
 		
 		#ifdef TIME
 		buf_read_time = omp_get_wtime();
 		#endif
 		
-		memcpy( local_image.data , &(original_image.data[img_idx]) , cell_halo.size_*sizeof(uint8_t) );
+		read_img_buffer( &original_image , &local_image, &cell_halo);
+
 			
 		#ifdef TIME
 		buf_read_time = omp_get_wtime() - buf_read_time;
@@ -181,14 +204,7 @@ int main( int argc, char **argv )
 		avg_buf_read_t2 += buf_read_time*buf_read_time;
 		#endif
 
-		
-		#ifdef INFO
-		printf("\nCell %d is %d x %d , starts at img line %d col %d .\n", proc_id, cell_halo.size[1], cell_halo.size[0], cell_halo.idx[1], cell_halo.idx[0] );
-		printf("Cell %d halos : (%d %d %d %d).\n", proc_id, cell_halo.halos[0], cell_halo.halos[1], cell_halo.halos[2], cell_halo.halos[3] );
-		printf("\n");
-		#endif
-		
-		
+
 		
 		#ifdef TIME
 		blur_time = omp_get_wtime();
@@ -206,12 +222,15 @@ int main( int argc, char **argv )
 		
 		#pragma omp barrier
 		//collect the results back into the image buffer
-		img_idx = img_idx_convert(&original_image, cell_nohalo.idx);
-		cell_idx = trim_halo_1D ( &cell_halo, original_image.pix_bytes);
+		
 		#ifdef TIME
 		buf_write_time = omp_get_wtime();
 		#endif
-		memcpy( &(original_image.data[img_idx]) , &(local_image.data[cell_idx]) , cell_nohalo.size_*sizeof(uint8_t) );
+		
+		
+		write_img_buffer( &original_image , &local_image, &cell_halo, &cell_nohalo);
+		
+		
 		#ifdef TIME
 		buf_write_time = omp_get_wtime() - buf_write_time;
 		avg_buf_write_t += buf_write_time;
