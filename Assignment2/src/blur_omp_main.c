@@ -84,8 +84,7 @@ int main( int argc, char **argv )
 		
 		p_grid grid;
 		build_grid(&grid,nprocs);
-		//grid.size[0]= 1 ;
-		//grid.size[1] = nprocs;
+
 		
 		#ifdef INFO
 		if (proc_id==0) {
@@ -131,8 +130,8 @@ int main( int argc, char **argv )
 		{
 			//wortk out the beginning of the buffer in the original image
 			register int img_idx;
-			for (size_t i=cell_nohalo.idx[1]; i< (cell_nohalo.idx[1] + cell_nohalo.size[1]); ++i) {
-			for (size_t j=cell_nohalo.idx[0]; j< (cell_nohalo.idx[0] + cell_nohalo.size[0]); ++j) {				
+			for (int i=cell_nohalo.idx[1]; i< (cell_nohalo.idx[1] + cell_nohalo.size[1]); ++i) {
+			for (int j=cell_nohalo.idx[0]; j< (cell_nohalo.idx[0] + cell_nohalo.size[0]); ++j) {				
 					//printf("proc %d i j (%d , %d)\n",proc_id,i,j);
 					img_idx =  (original_image.size[0]*i + j ) *original_image.pix_bytes;
 					original_image.data[ img_idx ] =0;
@@ -211,6 +210,10 @@ int main( int argc, char **argv )
 		#endif
 		
 		blur_halo_func_manager( &local_image, &local_kernel , cell_halo.halos);
+		
+		#ifdef INFO
+			printf("Process %d has finished blurring\n",proc_id);
+		#endif
 		
 		#ifdef TIME
 		blur_time = omp_get_wtime() - blur_time;
