@@ -11,9 +11,15 @@
 #include <math.h>
 
 
+//given the coordinate of a cell in a given dimension dim and size of the image and the number of processes in that dimension
+//determine the size of the cell in that dimension, adding the halo at both ends (except for first and last)
+//the halo is the kernel width or the distance between the cell edge and the image edge, whichever is smaller
+//save the halos widths and calculate the global image index corresponding to the vegining of the cell (with halo)
+
+
 void split_dimension(const int dim, const int nprocs, img_cell* proc_cell, const pgm* image, const int* kerhwidth ) {
 
-	
+	//determine the two possible sizes of cell along the dimension
 	float baselines = ((float)image->size[dim])/((float)nprocs);
 	
 	int h1 = (int)floor(baselines);
@@ -38,6 +44,7 @@ void split_dimension(const int dim, const int nprocs, img_cell* proc_cell, const
 	#endif
 
 	//first initialise the base cell size and index along the specified dimension
+	//first put all the smaller cells, then the larger ones
 	if (proc_cell->coords[dim] < n1 ) {
 		proc_cell->idx[dim]= proc_cell->coords[dim]*h1 ;
 		proc_cell->size[dim]=h1;
@@ -47,7 +54,7 @@ void split_dimension(const int dim, const int nprocs, img_cell* proc_cell, const
 		proc_cell->size[dim]=h2;
 	}
 	
-	//now work out if halos are necessary, their size and update index and size
+	//now work out if halos are necessary, their size, and update index and size
 	
 	//we check if the inclusion of the full kernel width overhangs the image edge
 	//but ONLY for the cells that are not the frst and last along the dimension
@@ -101,6 +108,7 @@ void split_dimension(const int dim, const int nprocs, img_cell* proc_cell, const
 }
 
 //one-dimensional image splitting
+//calculate the cell parameters only in the vertical direction, assuming processes rranged in a 1D grid column
 void get_cell_1D(p_grid* grid, img_cell* proc_cell, const pgm* image, const unsigned int* kerhwidth) {
 	
 	
@@ -117,7 +125,9 @@ void get_cell_1D(p_grid* grid, img_cell* proc_cell, const pgm* image, const unsi
 }
 
 
-// image splitting on a grid
+// image splitting on a given grid or processes
+// calculate cell parameters (size, halo widths and global index) in the two dimensions
+//calculate the total size of the cell in bytes
 void get_cell_grid(p_grid* grid, img_cell* proc_cell, const pgm* image, const unsigned int* kerhwidth) {
 	
 	
@@ -126,10 +136,6 @@ void get_cell_grid(p_grid* grid, img_cell* proc_cell, const pgm* image, const un
 	
 	//dimension y
 	split_dimension(1, grid->size[1], proc_cell, image, (int*)kerhwidth );
-	//proc_cell->size[1] = image->size[1];
-	//proc_cell->idx[1] = 0;
-	//proc_cell->halos[1] = 0;
-	//proc_cell->halos[3] = 0;
 	
 	proc_cell->size_ = proc_cell->size[0]*proc_cell->size[1]*image->pix_bytes;
 }
@@ -137,6 +143,7 @@ void get_cell_grid(p_grid* grid, img_cell* proc_cell, const pgm* image, const un
 
 
 
+/*
 //returns the idx in the local cell buffer of the first "real" image pixel (i.e. not halo)
 
 int trim_halo( const img_cell* proc_cell, const char img_bytes) {
@@ -145,8 +152,11 @@ int trim_halo( const img_cell* proc_cell, const char img_bytes) {
 	//skip the top halo rows if present and add the left halo on the first "actual" row if present
 	return (w*proc_cell->halos[1] + proc_cell->halos[0])*img_bytes;
 }
+*/
 
 
+//fill the image buffer line by line, given the buffer sizes and the global index 
+//of the cell in the original image
 void read_img_buffer( pgm* image , pgm* local_image, img_cell* cell_halo) {
 	
 	//work out the beginning of the buffer in the original image
@@ -165,8 +175,11 @@ void read_img_buffer( pgm* image , pgm* local_image, img_cell* cell_halo) {
 	
 }
 
+//write the internal part of the image buffer to file, skipping the first halo lines
+//and the halo pixels at both ends of each image line
+//needs information about both the haloed and un-haloed cells
+
 void write_img_buffer( pgm* image , pgm* local_image, img_cell* cell_halo, img_cell* cell_nohalo) {
-	
 	
 	//wortk out the beginning of the buffer in the original image
 	register int img_idx = img_idx_convert(image, cell_nohalo->idx);
