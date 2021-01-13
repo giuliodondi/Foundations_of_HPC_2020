@@ -2,6 +2,9 @@
 #include <math.h>
 
 
+//arrange a set of p processors in a grid
+//set one dimension to 1 and the other to p, increase the first dimension
+// and save the highest value that neatly divides p
 void build_grid( p_grid* grid, int p ) {
 	
 	int p_x=1, p_y=p, b=(int)sqrt(p) + 1;
@@ -22,7 +25,7 @@ void build_grid( p_grid* grid, int p ) {
 
 
 
-
+//translate processor rank to grid coordinates
 int* get_grid_coords( p_grid* grid, int proc_id ) {
 	static int grid_coords[2];
 	

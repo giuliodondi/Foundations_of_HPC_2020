@@ -1,8 +1,3 @@
-//#include <stdlib.h>
-//#include <string.h>
-//#include <stdio.h>
-//#include <stdint.h>
-//#include <math.h>
 #include <pgm.h>
 #include <p_grid.h>
 
