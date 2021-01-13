@@ -47,7 +47,7 @@ check: $(CHK_OBJ)
 	$(COMPILER) $^ -o check_pgm.x $(INCLUDE) $(FLAGS) -lm
 
 clean:
-	rm -rf $(SERIAL_OBJ) $(SERIALTEST_OBJ) $(COMMON_OBJ) $(OMP_OBJ) $(MPI_OBJ) $(CHK_OBJ)
+	rm -rf $(SERIAL_OBJ) $(SERIALTEST_OBJ) $(COMMON_OBJ) $(OMP_OBJ) $(MPI_OBJ) $(CHK_OBJ) $(GEN_OBJ)
 	rm -rf $(SERIAL_EXE_NAME) $(OMP_EXE_NAME) $(MPI_EXE_NAME) $(GEN_EXE_NAME) check_pgm.x 
 	rm -rf $(MOD)
 	
