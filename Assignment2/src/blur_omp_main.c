@@ -21,9 +21,9 @@
 int main( int argc, char **argv ) 
 { 
 	#ifdef TIME
-	double avg_buf_read_t=0, avg_blur_time_t=0, avg_buf_write_t=0 ;
-	double avg_buf_read_t2=0, avg_blur_time_t2=0, avg_buf_write_t2=0 ;
-	double header_time, read_time, write_time, total_t;
+	double avg_buf_read_t=0, avg_endiansw_t=0, avg_blur_time_t=0, avg_buf_write_t=0 ;
+	double avg_buf_read_t2=0, avg_endiansw_t2=0, avg_blur_time_t2=0, avg_buf_write_t2=0 ;
+	double header_time=0, read_time=0, write_time=0, total_t=0;
 	total_t = omp_get_wtime();
 	#endif
 		
@@ -73,7 +73,7 @@ int main( int argc, char **argv )
 
 
 	#ifdef TIME
-	#pragma omp parallel  shared( kernel, original_image) reduction(+: avg_buf_read_t, avg_blur_time_t, avg_buf_write_t, avg_buf_read_t2, avg_blur_time_t2, avg_buf_write_t2)
+	#pragma omp parallel  shared( kernel, original_image) reduction(+: avg_buf_read_t, avg_endiansw_t, avg_blur_time_t, avg_buf_write_t, avg_buf_read_t2, avg_endiansw_t2, avg_blur_time_t2, avg_buf_write_t2)
 	#else
 	#pragma omp parallel  shared( kernel, original_image)
 	#endif
@@ -90,6 +90,7 @@ int main( int argc, char **argv )
 		if (proc_id==0) {
 			printf("Threads arranged on a grid %d x %d\n",grid.size[0],grid.size[1]);
 		}
+		#pragma omp barrier
 		#endif
 		
 		
@@ -99,7 +100,7 @@ int main( int argc, char **argv )
 		kernel_t local_kernel;
 		
 		#ifdef TIME
-			double buf_read_time, blur_time, buf_write_time;
+			double buf_read_time, endiansw_t1, endiansw_t2, blur_time, buf_write_time;
 		#endif
 		
 		//create a local copy of the kernel
@@ -141,6 +142,7 @@ int main( int argc, char **argv )
 		
 		#pragma omp barrier
 		
+		
 		//only the master reads the image file
 		#pragma omp master 
 		{
@@ -157,6 +159,7 @@ int main( int argc, char **argv )
 			#ifdef TIME
 			read_time = omp_get_wtime() - read_time;
 			#endif
+			
 			
 			
 			 #ifdef INFO
@@ -177,8 +180,6 @@ int main( int argc, char **argv )
 		local_image.maxval = original_image.maxval;
 		local_image.pix_bytes = original_image.pix_bytes;
 		
-		
-		
 		local_image.data = (uint8_t*)malloc( cell_halo.size_*sizeof(uint8_t) );
 		if ( ! local_image.data) {
 			printf("Error allocating memory for a cell.\n");
@@ -189,23 +190,24 @@ int main( int argc, char **argv )
 			//return -1;
 		}
 		
-		
 		#ifdef TIME
 		buf_read_time = omp_get_wtime();
 		#endif
 		
 		read_img_buffer( &original_image , &local_image, &cell_halo);
 
-			
+		
 		#ifdef TIME
 		buf_read_time = omp_get_wtime() - buf_read_time;
 		avg_buf_read_t += buf_read_time;
 		avg_buf_read_t2 += buf_read_time*buf_read_time;
+		endiansw_t1 = omp_get_wtime();
 		#endif
-
-
+		
+		endian_swap(&local_image);
 		
 		#ifdef TIME
+		endiansw_t1 = omp_get_wtime() - endiansw_t1;
 		blur_time = omp_get_wtime();
 		#endif
 		
@@ -220,17 +222,24 @@ int main( int argc, char **argv )
 		avg_blur_time_t += blur_time;
 		avg_blur_time_t2 += blur_time*blur_time;
 		#endif
-		
-
-		
+				
 		#pragma omp barrier
-		//collect the results back into the image buffer
+		
 		
 		#ifdef TIME
+		endiansw_t2 = omp_get_wtime();
+		#endif
+		
+		endian_swap(&local_image);
+		
+		#ifdef TIME
+		endiansw_t2 = omp_get_wtime() - endiansw_t2;
+		avg_endiansw_t += endiansw_t1 + endiansw_t2;
+		avg_endiansw_t2 += avg_endiansw_t*avg_endiansw_t;
 		buf_write_time = omp_get_wtime();
 		#endif
 		
-		
+		//collect the results back into the image buffer
 		write_img_buffer( &original_image , &local_image, &cell_halo, &cell_nohalo);
 		
 		
@@ -262,6 +271,8 @@ int main( int argc, char **argv )
 	header_time = omp_get_wtime() - header_time;
 	write_time = omp_get_wtime();
 	#endif
+	
+	
 	//write the image data
 	if (write_pgm_data( &original_image , outfile)== -1 ) {
 		printf("Aborting.\n");
@@ -286,23 +297,29 @@ int main( int argc, char **argv )
 	
 	int nprocs = atoi(getenv ("OMP_NUM_THREADS"));
 	
-	avg_buf_read_t = avg_buf_read_t/nprocs;
-	avg_blur_time_t = avg_blur_time_t/nprocs;
-	avg_buf_write_t = avg_buf_write_t/nprocs;
+	avg_buf_read_t /= nprocs;
+	avg_endiansw_t /= nprocs;
+	avg_blur_time_t /= nprocs;
+	avg_buf_write_t /= nprocs;
+	
 	
 	if ( nprocs==1 ) {
 		avg_buf_read_t2 = 0;
+		avg_endiansw_t2 = 0;
 		avg_blur_time_t2 = 0;
 		avg_buf_write_t2 = 0;
 	} else {
 		avg_buf_read_t2 = sqrt(avg_buf_read_t2/nprocs - avg_buf_read_t*avg_buf_read_t);
+		avg_endiansw_t2 = sqrt(avg_endiansw_t2/nprocs - avg_endiansw_t*avg_endiansw_t);
 		avg_blur_time_t2 = sqrt(avg_blur_time_t2/nprocs - avg_blur_time_t*avg_blur_time_t);
 		avg_buf_write_t2 = sqrt(avg_buf_write_t2/nprocs - avg_buf_write_t*avg_buf_write_t);
 	}
 	
+	
 	printf("Header read time 	: %f s.\n",header_time);
 	printf("Data read time		: %f s.\n",read_time);
 	printf("Avg buf read time 	: %f +- %f s.\n",avg_buf_read_t, avg_buf_read_t2 );
+	printf("Avg end swap time 	: %f +- %f s.\n",avg_endiansw_t, avg_endiansw_t2 );
 	printf("Avg blur time 		: %f +- %f s.\n",avg_blur_time_t, avg_blur_time_t2 );
 	printf("Avg buf write time 	: %f +- %f s.\n",avg_buf_write_t, avg_buf_write_t2 );
 	printf("Header write time 	: %f s.\n",header_time);

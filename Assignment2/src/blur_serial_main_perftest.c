@@ -12,29 +12,18 @@
 
 #define NITER 10
 
-//serial function headers
-void pgm_blur_copy(  pgm* input_img , kernel_t* k);
-void pgm_blur_linebuf(  pgm* input_img , kernel_t* k);
-void pgm_blur_linebuf_unrol(  pgm* input_img , kernel_t* k);
 
 
 int main( int argc, char **argv ) 
 { 
 
 	
-
-    
-	//read command-line arguments and initialise the variables
-	
-	
 	char infile[80] = "";
-	char outfile[80] = "output.pgm";
+	char outfile[80] = "";
 	
 	pgm  original_image = new_pgm();
 	kernel_t kernel;
 	long int header_offs=0;	
-
-	
 	
 	//read command line parameters 
 	if (read_params_initialise_kernel(argc, argv, infile, outfile, &kernel) == -1 ) {

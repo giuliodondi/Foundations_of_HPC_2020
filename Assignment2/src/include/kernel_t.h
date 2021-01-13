@@ -12,7 +12,7 @@ typedef struct {
 	unsigned int halfsize[2];
 } kernel_t;
 
-
+//kernel func headers
 int8_t alloc_kernel( kernel_t* k, const unsigned int* ker_s );
 int8_t copy_kernel(kernel_t* new_ker, const kernel_t *old_ker) ;
 void delete_kernel( kernel_t* k) ;

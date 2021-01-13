@@ -20,9 +20,9 @@ int main( int argc, char **argv )
 { 
 	
 	#ifdef TIME
-	double read_time=0, blur_time=0, write_time=0 ;
-	double read_time2=0, blur_time2=0, write_time2=0 ;
-	double header_read_time, header_write_time,  total_t, total_t2;
+	double read_time=0, endiansw_time=0, blur_time=0, write_time=0 ;
+	double read_time2=0, endiansw_time2=0, blur_time2=0, write_time2=0 ;
+	double header_read_time=0, endiansw_t=0,  header_write_time=0,  total_t=0, total_t2=0;
 	total_t = MPI_Wtime();
 	#endif
 	
@@ -35,17 +35,8 @@ int main( int argc, char **argv )
 	MPI_Init(&argc, &argv);
 	MPI_Comm_size(MPI_COMM_WORLD,&nprocs);
 	MPI_Comm_rank(MPI_COMM_WORLD, &proc_id);
+	MPI_Comm MPI_COMM_CART;
 	
-	p_grid grid;
-	build_grid(&grid,nprocs);
-
-	#ifdef INFO
-	if (proc_id==0) {
-		printf("Threads arranged on a grid %d x %d\n",grid.size[0],grid.size[1]);
-	}
-	#endif
-
-
 	
 
 	pgm  local_image = new_pgm();
@@ -54,6 +45,20 @@ int main( int argc, char **argv )
 	img_cell cell_halo, cell_nohalo;
 	long int header_offs=0;
 	unsigned int halowidth0[2] = {0,0};
+	
+	p_grid grid;
+	build_grid(&grid,nprocs);
+	
+	int	periods[2] = {0,0};
+	
+	MPI_Cart_create(MPI_COMM_WORLD,	2, grid.size, periods, 0, &MPI_COMM_CART);
+	MPI_Cart_get(MPI_COMM_CART,	2, grid.size , periods, cell_halo.coords);
+
+	#ifdef INFO
+	if (proc_id==0) {
+		printf("Threads arranged on a grid %d x %d\n",grid.size[0],grid.size[1]);
+	}
+	#endif
 	
 	
 	//read command-line arguments and initialise the variables
@@ -103,7 +108,7 @@ int main( int argc, char **argv )
 	
 	
 	//initialise cells with halo and without halo
-	memcpy( cell_halo.coords , get_grid_coords(  &grid, proc_id ) , 2*sizeof(unsigned int) );
+	//memcpy( cell_halo.coords , get_grid_coords(  &grid, proc_id ) , 2*sizeof(unsigned int) );
 	memcpy( cell_nohalo.coords , cell_halo.coords , 2*sizeof(unsigned int) );
 
 	get_cell_grid( &grid, &cell_halo, &original_image, kernel.halfsize);
@@ -174,17 +179,23 @@ int main( int argc, char **argv )
 	read_time = MPI_Wtime();
 	#endif
 	
+
 	MPI_File in_file;
 	MPI_File_open(MPI_COMM_WORLD, infile, MPI_MODE_RDONLY,MPI_INFO_NULL, &in_file);
 	MPI_File_set_view(in_file, my_data_offs, pixel , img_subarr_halo, "native", MPI_INFO_NULL);
 	MPI_File_read(in_file, &local_image.data[0], cell_halo.size_, pixel,  &status);
 	MPI_File_close(&in_file);
-	
-	endian_swap(&local_image);
-	
+		
 	#ifdef TIME
 	read_time = MPI_Wtime() - read_time;
 	read_time2 += read_time*read_time;
+	endiansw_t = MPI_Wtime();
+	#endif
+
+	endian_swap(&local_image);
+
+	#ifdef TIME
+	endiansw_time += MPI_Wtime() - endiansw_t;
 	#endif
 	
 	#ifdef INFO
@@ -256,15 +267,19 @@ int main( int argc, char **argv )
 	MPI_Type_create_subarray(2, dtype_size, dtype_subsize, dtype_idx ,MPI_ORDER_C, pixel, &cell_subarr_nohalo);
 	MPI_Type_commit(&cell_subarr_nohalo);
 	
-	//parallel write
 	#ifdef TIME
+	endiansw_t = MPI_Wtime();
+	#endif
+
+	endian_swap(&local_image);
+
+	#ifdef TIME
+	endiansw_time += MPI_Wtime() - endiansw_t;
+	endiansw_time2 += endiansw_time*endiansw_time;
 	write_time = MPI_Wtime();
 	#endif
 	
-	endian_swap(&local_image);
-	
-	
-	
+	//parallel write
 	MPI_File out_file;
 	MPI_File_open(MPI_COMM_WORLD, outfile, MPI_MODE_CREATE | MPI_MODE_WRONLY,MPI_INFO_NULL, &out_file);
 	MPI_File_set_view(out_file, my_data_offs, pixel , img_subarr_nohalo, "native", MPI_INFO_NULL);
@@ -300,6 +315,8 @@ int main( int argc, char **argv )
 	double time_arr[] = {
 					read_time,
 					read_time2,
+					endiansw_time,
+					endiansw_time2,
 					blur_time,
 					blur_time2,
 					write_time,
@@ -308,7 +325,7 @@ int main( int argc, char **argv )
 					total_t2
 	};
 	
-	double avg_time_arr[] = {0,0,0,0,0,0,0,0};
+	double avg_time_arr[] = {0,0,0,0,0,0,0,0,0,0};
 	
 	MPI_Reduce(&time_arr, &avg_time_arr, 8, MPI_DOUBLE, MPI_SUM, 0,MPI_COMM_WORLD);
 	
@@ -327,10 +344,12 @@ int main( int argc, char **argv )
 		
 		printf("Header read time 	: %f s.\n",header_read_time);
 		printf("Avg read time 		: %f +- %f s.\n",avg_time_arr[0], avg_time_arr[1] );
-		printf("Avg blur time 		: %f +- %f s.\n",avg_time_arr[2], avg_time_arr[3] );
+		printf("Avg end swap time 	: %f +- %f s.\n",avg_time_arr[2], avg_time_arr[3] );
+		printf("Avg blur time 		: %f +- %f s.\n",avg_time_arr[4], avg_time_arr[5] );
 		printf("Header write time 	: %f s.\n",header_write_time);
-		printf("Avg write time 		: %f +- %f s.\n",avg_time_arr[4], avg_time_arr[5] );
-		printf("Avg total time 		: %f +- %f s.\n",avg_time_arr[6], avg_time_arr[7] );
+		printf("Avg write time 		: %f +- %f s.\n",avg_time_arr[6], avg_time_arr[7] );
+		printf("Avg total time 		: %f +- %f s.\n",avg_time_arr[8], avg_time_arr[9] );
+		
 	}
 	
 	

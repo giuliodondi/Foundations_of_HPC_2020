@@ -7,7 +7,8 @@
 #include <stdint.h>
 #include <string.h>
 
-
+//allocate the kernel main matrix and the normalisation kernel
+//iniitalise the size and halfsize arrays
 int8_t alloc_kernel( kernel_t* k, const unsigned int* restrict ker_s ) {
 	
 	k->size[0] = ker_s[0];
@@ -25,7 +26,7 @@ int8_t alloc_kernel( kernel_t* k, const unsigned int* restrict ker_s ) {
 	
 }
 
-
+//copy over a kernel
 int8_t copy_kernel(kernel_t* new_ker, const kernel_t *old_ker) {
 	
 	if (alloc_kernel(new_ker, old_ker->size)== -1 ) {
@@ -39,7 +40,7 @@ int8_t copy_kernel(kernel_t* new_ker, const kernel_t *old_ker) {
 }
 
 
-
+//free the memory and reset danglign pointers
 void delete_kernel( kernel_t* k) {
 	free(k->ker);
 	free(k->kernorm);
@@ -51,6 +52,8 @@ void delete_kernel( kernel_t* k) {
 	k->halfsize[1] = 0;
 }
 
+
+//read a kernel from formatted file
 int8_t kernel_init_from_file(kernel_t* k, const  char* kernel_fname ) {
 	FILE* kernel_file; 
 	kernel_file = fopen(kernel_fname, "r"); 
@@ -96,6 +99,7 @@ int8_t kernel_init_from_file(kernel_t* k, const  char* kernel_fname ) {
 	return 0;
 }
 
+//initialise kernel of the standard kinds
 int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned int* restrict ker_s, const float kernel_weight) {
 	
 	alloc_kernel( k , ker_s);
@@ -124,17 +128,15 @@ int8_t kernel_init(kernel_t* k, const unsigned int kernel_type, const unsigned i
 			printf("Error: unknown kernel type.\n");
 			printf("Currently supported: 0 (average), 1 (weighted), 2 (gaussian).\n");
 			return -1;
-			
 	}
 	
-	
 	kernel_normalisations(k);
-
 	
 	return 0;
 }
 
 
+//initialise the averaging kernel
 void average_kernel(kernel_t* k) {
 	
 	double* kernel = k->ker;
@@ -147,7 +149,7 @@ void average_kernel(kernel_t* k) {
 
 }
 
-
+//initialise the weighted kernel
 void weighted_kernel(kernel_t* k, const double kernel_weight) {
 	
 	double* kernel = k->ker;
@@ -165,7 +167,7 @@ void weighted_kernel(kernel_t* k, const double kernel_weight) {
 }
 
 
-//this uses the binomial coefficients
+//initialise the gaussian kernel with binomial coefficients
 //uses the tgamma function in math.h for the factorial
 void gaussian_kernel_simple(kernel_t* k) {
 	
@@ -196,7 +198,6 @@ void gaussian_kernel_simple(kernel_t* k) {
 
 	k->ker = kernel;
 }
-
 
 
 
@@ -237,25 +238,12 @@ void kernel_normalisations(kernel_t* k) {
 			offs_u = -min( k->halfsize[1], i );
 			offs_r = min( k->halfsize[0], k->size[0] - 1 - j );
 			offs_d = min( k->halfsize[1], k->size[1] - 1 - i );
-						
-			
-			
-			
-			normc=0;
-			/*
-			for (int u = offs_u; u<= offs_d; ++u) {
-				for (int t =  offs_l; t<= offs_r; ++t) {
-					normc += kernel[ k->size[0]*(k->halfsize[1] + u) +  k->halfsize[0] + t  ] ;
-				}
-				
-			}
-			*/
-			
+
+			//x2 loop unrolling 
+			normc=0;			
 			if (( offs_r - offs_l)%2) {
 				for (int u = offs_u; u<= offs_d; ++u) {
-					normc += kernel[ k->size[0]*(k->halfsize[1] + u) +  k->halfsize[0] + offs_l  ] 
-							+ kernel[ k->size[0]*(k->halfsize[1] + u) +  k->halfsize[0] + offs_l + 1 ] ;
-					for (int t =  offs_l + 2; t<= offs_r; t+=2) {
+					for (int t =  offs_l ; t<= offs_r; t+=2) {
 						normc += kernel[ k->size[0]*(k->halfsize[1] + u) +  k->halfsize[0] + t  ] 
 							+ kernel[ k->size[0]*(k->halfsize[1] + u) +  k->halfsize[0] + t + 1 ] ;
 					}
@@ -281,7 +269,7 @@ void kernel_normalisations(kernel_t* k) {
 }
 
 //normalises a given kernel
-//not neded for the built-in kernels
+//needed for the kernel from file, not neded for the built-in kernels
 void normalise_kernel(kernel_t* k) {
 	double* kernel = k->ker;
 	double norm=0;

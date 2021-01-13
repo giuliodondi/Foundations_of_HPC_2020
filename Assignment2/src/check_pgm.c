@@ -61,6 +61,9 @@ int main( int argc, char **argv )  {
 		return -1;
 	}
 	
+	endian_swap(&image1);
+	endian_swap(&image2);
+	
 	FILE* f; 
 	f = fopen(outfile, "w"); 
 	
