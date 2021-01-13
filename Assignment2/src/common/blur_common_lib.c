@@ -7,12 +7,13 @@
 #include <stdint.h>
 
 
-
+//prints argument description
 void print_usage(char **argv) {
 	printf("Usage: %s -input input_img.pgm -kernel_type type -kernel-size size1 [size2] \n",argv[0]);
 	printf("			[-output output_img.pgm] [-kernel-weight weight]\n");
 }
 
+//checks if input is a valid int or float
 char is_number( char arg[] ) {
 	int i=0;
 	if (arg[0] == '-' ) {
@@ -31,6 +32,7 @@ char is_number( char arg[] ) {
 }
 
 
+//given the input arguments, generates a formatted default output name
 void gen_out_name( char* infile, char* outfile, int type, int* size, double weight ) {
 	strcpy( outfile , infile );
 	char* ext = ".pgm";
