@@ -21,8 +21,8 @@ fi
 
 
 KER_FNAME='-kernel-type my_ker.txt'
-KER_TYPE='-kernel-type 0'
-KER_SIZE='-kernel-size 31'
+KER_TYPE='-kernel-type 1'
+KER_SIZE='-kernel-size 101'
 KER_WGHT='-kernel-weight 0.2'
 
 	
