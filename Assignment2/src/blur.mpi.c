@@ -18,15 +18,7 @@
 
 int main( int argc, char **argv ) 
 { 
-	
-	#ifdef TIME
-	double read_time=0, endiansw_time=0, blur_time=0, write_time=0 ;
-	double read_time2=0, endiansw_time2=0, blur_time2=0, write_time2=0 ;
-	double header_read_time=0, endiansw_t=0,  header_write_time=0,  total_t=0, total_t2=0;
-	total_t = MPI_Wtime();
-	#endif
-	
-	//mpi common variables
+		//mpi common variables
 	int nprocs, proc_id;
 	MPI_Status status;
 	MPI_Offset my_data_offs;
@@ -37,8 +29,16 @@ int main( int argc, char **argv )
 	MPI_Comm_rank(MPI_COMM_WORLD, &proc_id);
 	MPI_Comm MPI_COMM_CART;
 	
+	//timing variables
+	#ifdef TIME
+	double read_time=0, endiansw_time=0, blur_time=0, write_time=0 ;
+	double read_time2=0, endiansw_time2=0, blur_time2=0, write_time2=0 ;
+	double header_read_time=0, endiansw_t=0,  header_write_time=0,  total_t=0, total_t2=0;
+	total_t = MPI_Wtime();
+	#endif
 	
-
+	
+	//process image variables
 	pgm  local_image = new_pgm();
 	pgm  original_image = new_pgm();
 	kernel_t kernel;
@@ -46,13 +46,15 @@ int main( int argc, char **argv )
 	long int header_offs=0;
 	unsigned int halowidth0[2] = {0,0};
 	
+	
+	//initialise gird and cart communicator
 	p_grid grid;
 	build_grid(&grid,nprocs);
 	
 	int	periods[2] = {0,0};
 	
 	MPI_Cart_create(MPI_COMM_WORLD,	2, grid.size, periods, 0, &MPI_COMM_CART);
-	MPI_Cart_get(MPI_COMM_CART,	2, grid.size , periods, cell_halo.coords);
+	//MPI_Cart_get(MPI_COMM_CART,	2, grid.size , periods, cell_halo.coords);
 
 	#ifdef INFO
 	if (proc_id==0) {
@@ -108,7 +110,7 @@ int main( int argc, char **argv )
 	
 	
 	//initialise cells with halo and without halo
-	//memcpy( cell_halo.coords , get_grid_coords(  &grid, proc_id ) , 2*sizeof(unsigned int) );
+	memcpy( cell_halo.coords , get_grid_coords(  &grid, proc_id ) , 2*sizeof(unsigned int) );
 	memcpy( cell_nohalo.coords , cell_halo.coords , 2*sizeof(unsigned int) );
 
 	get_cell_grid( &grid, &cell_halo, &original_image, kernel.halfsize);
@@ -162,7 +164,6 @@ int main( int argc, char **argv )
 	int dtype_subsize[2];
 	int dtype_idx[2];
 
-	
 	dtype_size[0] = original_image.size[1];
 	dtype_size[1] = original_image.size[0];
 	dtype_subsize[0] = cell_halo.size[1];
@@ -175,17 +176,19 @@ int main( int argc, char **argv )
 	MPI_Type_commit(&img_subarr_halo);
 	
 	
+	//read the image portion for this process
 	#ifdef TIME
 	read_time = MPI_Wtime();
 	#endif
 	
 
 	MPI_File in_file;
-	MPI_File_open(MPI_COMM_WORLD, infile, MPI_MODE_RDONLY,MPI_INFO_NULL, &in_file);
+	MPI_File_open(MPI_COMM_CART, infile, MPI_MODE_RDONLY,MPI_INFO_NULL, &in_file);
 	MPI_File_set_view(in_file, my_data_offs, pixel , img_subarr_halo, "native", MPI_INFO_NULL);
 	MPI_File_read(in_file, &local_image.data[0], cell_halo.size_, pixel,  &status);
 	MPI_File_close(&in_file);
 		
+	//time the endian swap
 	#ifdef TIME
 	read_time = MPI_Wtime() - read_time;
 	read_time2 += read_time*read_time;
@@ -267,6 +270,7 @@ int main( int argc, char **argv )
 	MPI_Type_create_subarray(2, dtype_size, dtype_subsize, dtype_idx ,MPI_ORDER_C, pixel, &cell_subarr_nohalo);
 	MPI_Type_commit(&cell_subarr_nohalo);
 	
+	//time thesecond endian swap
 	#ifdef TIME
 	endiansw_t = MPI_Wtime();
 	#endif
@@ -281,7 +285,7 @@ int main( int argc, char **argv )
 	
 	//parallel write
 	MPI_File out_file;
-	MPI_File_open(MPI_COMM_WORLD, outfile, MPI_MODE_CREATE | MPI_MODE_WRONLY,MPI_INFO_NULL, &out_file);
+	MPI_File_open(MPI_COMM_CART, outfile, MPI_MODE_CREATE | MPI_MODE_WRONLY,MPI_INFO_NULL, &out_file);
 	MPI_File_set_view(out_file, my_data_offs, pixel , img_subarr_nohalo, "native", MPI_INFO_NULL);
 	MPI_File_write(out_file, &local_image.data[0], 1 , cell_subarr_nohalo,  &status);
 	MPI_File_close(&out_file);
@@ -302,11 +306,13 @@ int main( int argc, char **argv )
 	
 	MPI_Type_free(&img_subarr_nohalo);
 	MPI_Type_free(&cell_subarr_nohalo);
-	//MPI_Type_free(&pixel);
+
 	
 	clear_pgm( &original_image);
 	clear_pgm( &local_image);
 	
+	//average and output the timing info
+	//reduce each process timings to master
 	#ifdef TIME
 	total_t = MPI_Wtime() - total_t;
 	total_t2 = total_t*total_t;
@@ -327,14 +333,14 @@ int main( int argc, char **argv )
 	
 	double avg_time_arr[] = {0,0,0,0,0,0,0,0,0,0};
 	
-	MPI_Reduce(&time_arr, &avg_time_arr, 8, MPI_DOUBLE, MPI_SUM, 0,MPI_COMM_WORLD);
+	MPI_Reduce(&time_arr, &avg_time_arr, 10, MPI_DOUBLE, MPI_SUM, 0,MPI_COMM_WORLD);
 	
 	if (proc_id==0) {
-		for (int i=0; i<8; ++i) {
+		for (int i=0; i<10; ++i) {
 			avg_time_arr[i] /= nprocs;	
 		}
 		
-		for (int i=1; i<8; i+=2) {
+		for (int i=1; i<10; i+=2) {
 			if ( nprocs==1 ) {
 				avg_time_arr[i] = 0;
 			} else {

@@ -20,6 +20,7 @@
 
 int main( int argc, char **argv ) 
 { 
+	//timing variables
 	#ifdef TIME
 	double avg_buf_read_t=0, avg_endiansw_t=0, avg_blur_time_t=0, avg_buf_write_t=0 ;
 	double avg_buf_read_t2=0, avg_endiansw_t2=0, avg_blur_time_t2=0, avg_buf_write_t2=0 ;
@@ -34,7 +35,7 @@ int main( int argc, char **argv )
 	long int header_offs=0;
 	
 	
-	//read command-line arguments and initialise the variables
+	//read command-line arguments 
 	
 	char infile[80] = "";
 	char outfile[80] = "output.pgm";
@@ -63,7 +64,7 @@ int main( int argc, char **argv )
 
 	
 
-	//allocate memory for the image
+	//allocate memory for the image, do not touch the memory
 	if (allocate_pgm_memory( &original_image)== -1 ) {
 		printf("Aborting.\n");
 		clear_pgm( &original_image);
@@ -71,7 +72,8 @@ int main( int argc, char **argv )
 		return -1;
 	}
 
-
+	//if timing put reduction directives for the thread specific timing vars
+	//else just spawn the parallel region
 	#ifdef TIME
 	#pragma omp parallel  shared( kernel, original_image) reduction(+: avg_buf_read_t, avg_endiansw_t, avg_blur_time_t, avg_buf_write_t, avg_buf_read_t2, avg_endiansw_t2, avg_blur_time_t2, avg_buf_write_t2)
 	#else
@@ -82,6 +84,7 @@ int main( int argc, char **argv )
 		int nprocs = omp_get_num_threads();
 		int proc_id =  omp_get_thread_num();
 		
+		//arrange the threads on a grid
 		p_grid grid;
 		build_grid(&grid,nprocs);
 
@@ -169,7 +172,7 @@ int main( int argc, char **argv )
 		
 		}
 		
-		//otherwise the children processes use data which isn't loaded yet
+		//make sure the image has been read
 		#pragma omp barrier
 		
 		
@@ -190,13 +193,15 @@ int main( int argc, char **argv )
 			//return -1;
 		}
 		
+		//load the main sub-image data (shoudl aready be local because of touching) plucs the halos
+		//from the other thread regions into a local buffer
 		#ifdef TIME
 		buf_read_time = omp_get_wtime();
 		#endif
 		
 		read_img_buffer( &original_image , &local_image, &cell_halo);
 
-		
+		//measure time for endian swapping
 		#ifdef TIME
 		buf_read_time = omp_get_wtime() - buf_read_time;
 		avg_buf_read_t += buf_read_time;
@@ -211,6 +216,7 @@ int main( int argc, char **argv )
 		blur_time = omp_get_wtime();
 		#endif
 		
+		//do the blurring
 		blur_halo_func_manager( &local_image, &local_kernel , cell_halo.halos);
 		
 		#ifdef INFO
@@ -225,7 +231,7 @@ int main( int argc, char **argv )
 				
 		#pragma omp barrier
 		
-		
+		//second endian swap
 		#ifdef TIME
 		endiansw_t2 = omp_get_wtime();
 		#endif
@@ -290,8 +296,8 @@ int main( int argc, char **argv )
 	#endif
 
 	clear_pgm( &original_image);
-	//the local image points to the memory location of the original image which is free
 	
+	//average and output the timing info
 	#ifdef TIME
 	total_t = omp_get_wtime() - total_t;
 	

@@ -14,15 +14,15 @@ then
 	MAKEFLAG=1
 else
 	INNAME="$1"
-	OUTNAME="output.pgm"
-	CHKNAME="output2.pgm"
+	OUTNAME="testout.pgm"
+	CHKNAME="test1.pgm"
 fi
 
 
 
 KER_FNAME='-kernel-type my_ker.txt'
 KER_TYPE='-kernel-type 1'
-KER_SIZE='-kernel-size 101'
+KER_SIZE='-kernel-size 11'
 KER_WGHT='-kernel-weight 0.2'
 
 	
@@ -52,9 +52,9 @@ MPI_PROCS=0
 MAKERULE=''
 CFLAGS=''
 CMD=''
-SERIAL_EXE='./blur_serial.x' 
-MPI_EXE='./blur_mpi.x' 
-OMP_EXE='./blur_omp.x' 
+SERIAL_EXE='./blur.x' 
+MPI_EXE='./blur.mpi.x' 
+OMP_EXE='./blur.omp.x' 
 
 
 #check for missing required arguments

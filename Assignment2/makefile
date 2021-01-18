@@ -2,9 +2,9 @@ COMPILER = gcc
 MPI_COMPILER = mpicc 
 OMP_COMPILER = gcc -fopenmp 
 GEN_EXE_NAME = generate_pgm.x
-SERIAL_EXE_NAME = blur_serial.x
-MPI_EXE_NAME = blur_mpi.x
-OMP_EXE_NAME = blur_omp.x
+SERIAL_EXE_NAME = blur.x
+MPI_EXE_NAME = blur.mpi.x
+OMP_EXE_NAME = blur.omp.x
 FLAGS = -Wall -Wextra  -march=native -O3 -g3
 INCLUDE = -I src/include/
 CFLAGS=
@@ -12,10 +12,10 @@ CFLAGS=
 CHK_OBJ = src/check_pgm.o  src/common/pgm_lib.o
 GEN_OBJ = src/generate_pgm.o src/common/pgm_lib.o
 COMMON_OBJ = src/common/blur_common_lib.o  src/common/pgm_lib.o src/common/kernel_lib.o 
-SERIAL_OBJ = src/blur_serial_main.o src/common/blur_pgm_lib.o
+SERIAL_OBJ = src/blur.o src/common/blur_pgm_lib.o
 SERIALTEST_OBJ = src/blur_serial_main_perftest.o src/common/blur_pgm_lib.o
-OMP_OBJ = src/blur_omp_main.o src/common/blur_pgm_halo_lib.o src/common/img_cell.o src/common/p_grid.o
-MPI_OBJ = src/blur_mpi_main.o src/common/blur_pgm_halo_lib.o src/common/img_cell.o src/common/p_grid.o
+OMP_OBJ = src/blur.omp.o src/common/blur_pgm_halo_lib.o src/common/img_cell.o src/common/p_grid.o
+MPI_OBJ = src/blur.mpi.o src/common/blur_pgm_halo_lib.o src/common/img_cell.o src/common/p_grid.o
 
 
 
@@ -55,10 +55,10 @@ clean:
 
 
 
-src/blur_omp_main.o : src/blur_omp_main.c
+src/blur.omp.o : src/blur.omp.c
 	$(OMP_COMPILER) -c $< -o $@ $(FLAGS) $(CFLAGS) $(INCLUDE)
 	
-src/blur_mpi_main.o : src/blur_mpi_main.c
+src/blur.mpi.o : src/blur.mpi.c
 	$(MPI_COMPILER) -c $< -o $@ $(FLAGS) $(CFLAGS) $(INCLUDE)
 	
 %.o: %.c

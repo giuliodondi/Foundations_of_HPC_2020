@@ -576,16 +576,157 @@ void pgm_blur_linebuf_unrolx4(  pgm* input_img , const kernel_t* k) {
 }
 
 
-//wrapper that switches between the unrolled versions to prevent 
-//the selection of x4 unrolled loops in a kernel too small
-void  blur_func_manager( pgm* input_img , const kernel_t* k ) {
-	if (k->halfsize[0]>=4) {
-		pgm_blur_linebuf_unrolx4(input_img,k);
-	}
-	else  {
-		pgm_blur_linebuf_unrolx2(input_img,k);
-	}
+
+
+//this function implements x8 unrolling
+//a single loop takes care of odd and even kernel sizes
+void pgm_blur_linebuf_unrolx8(  pgm* input_img , const kernel_t* k) {
 	
 	
+	register const size_t xdim = input_img->size[0] ;
+	register const size_t ydim = input_img->size[1] ;
+
+	
+	double* kernel = k->ker;
+	double* ker_norm = k->kernorm;
+	
+	register size_t hsize_h = k->halfsize[0];
+	register size_t hsize_v = k->halfsize[1];
+	
+	
+	const size_t buffer_lines = (hsize_v + 1);
+	size_t line_idx; 
+	
+	int offs_l, offs_r, offs_u, offs_d;
+	register double accum1, accum2, normc;
+	uint8_t normflagx,normflagy;
+
+	if (input_img->pix_bytes == 2) {
+		uint16_t* image = (uint16_t*)input_img->data; 
+		int16_t* linebuf = (int16_t*)malloc( buffer_lines*xdim*sizeof(int16_t) );
+		
+		for (size_t i=0; i<ydim; ++i) {
+			line_idx = xdim*(i%buffer_lines);
+
+			if (i>=buffer_lines) {
+				memcpy( &image[(i-buffer_lines)*xdim] , (&linebuf[line_idx]), xdim*sizeof(int16_t) );
+			}
+
+			normflagy = ( (i<hsize_v) || (i>=(ydim - hsize_v) ) );
+
+			for (size_t j=0; j<xdim; ++j) {
+
+				normflagx = normflagy +  ( (j<hsize_h) || (j>=(xdim - hsize_h) ) );
+
+				offs_l = -min( hsize_h, j );
+				offs_u = -min( hsize_v, i );
+				offs_r = min( hsize_h, xdim - j - 1);
+				offs_d = min( hsize_v, ydim - i - 1);
+
+				accum1=0;
+				accum2=0;
+				int t;
+				for (int u = offs_u; u<= offs_d; ++u) {
+					t = offs_l;
+					while (t <= offs_r - 7) {
+						accum1 += kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t  ]*( image[(i + u)*xdim + j + t] )
+								+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 1 ]*( image[(i + u)*xdim + j + t + 1] )
+								+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 2 ]*( image[(i + u)*xdim + j + t + 2] ) 
+								+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 3 ]*( image[(i + u)*xdim + j + t + 3] ) ;
+						
+						accum2 += kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 4 ]*( image[(i + u)*xdim + j + t + 4] )
+								+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 5 ]*( image[(i + u)*xdim + j + t + 5] )
+								+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 6 ]*( image[(i + u)*xdim + j + t + 6] ) 
+								+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 7 ]*( image[(i + u)*xdim + j + t + 7] ) ;
+						t+=8;
+					}
+					for (; t<= offs_r; ++t) {
+						accum1 += kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t  ]*( image[(i + u)*xdim + j + t] );
+					}
+				}
+				
+				accum1 += accum2;
+
+				if (normflagx ) {
+					normc=ker_norm[k->size[0]*(hsize_v + offs_u + offs_d) +  hsize_h + offs_l + offs_r];
+					accum1 = accum1*normc;
+				}
+				linebuf[line_idx + j] = (uint16_t)min(input_img->maxval,accum1);
+			}
+		}
+		size_t j = (ydim - buffer_lines)%buffer_lines ;
+
+		for (size_t i = ydim - buffer_lines; i<ydim; ++i) {
+			memcpy( &image[i*xdim] , (&linebuf[xdim*j]), xdim*sizeof(int16_t) );	
+			j = (j + 1)%buffer_lines;
+		}
+		free(linebuf);
+	}
+	else {
+		uint8_t* image = (uint8_t*)input_img->data; 
+		int8_t* linebuf = (int8_t*)malloc( buffer_lines*xdim*sizeof(int8_t) );
+		
+		for (size_t i=0; i<ydim; ++i) {
+			line_idx = xdim*(i%buffer_lines);
+
+			if (i>=buffer_lines) {
+				memcpy( &image[(i-buffer_lines)*xdim] , (&linebuf[line_idx]), xdim*sizeof(int8_t) );
+			}
+
+			normflagy = ( (i<hsize_v) || (i>=(ydim - hsize_v) ) );
+
+			for (size_t j=0; j<xdim; ++j) {
+
+				normflagx = normflagy +  ( (j<hsize_h) || (j>=(xdim - hsize_h) ) );
+
+				offs_l = -min( hsize_h, j );
+				offs_u = -min( hsize_v, i );
+				offs_r = min( hsize_h, xdim - j - 1);
+				offs_d = min( hsize_v, ydim - i - 1);
+
+				accum1=0;
+				accum2=0;
+				int t;
+				for (int u = offs_u; u<= offs_d; ++u) {
+					t = offs_l;
+					while (t <= offs_r - 7) {
+						accum1 += kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t  ]*( image[(i + u)*xdim + j + t] )
+								+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 1 ]*( image[(i + u)*xdim + j + t + 1] )
+								+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 2 ]*( image[(i + u)*xdim + j + t + 2] ) 
+								+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 3 ]*( image[(i + u)*xdim + j + t + 3] ) ;
+						
+						accum2 += kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 4 ]*( image[(i + u)*xdim + j + t + 4] )
+								+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 5 ]*( image[(i + u)*xdim + j + t + 5] )
+								+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 6 ]*( image[(i + u)*xdim + j + t + 6] ) 
+								+ kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t + 7 ]*( image[(i + u)*xdim + j + t + 7] ) ;
+						t+=8;
+					}
+					for (; t<= offs_r; ++t) {
+						accum1 += kernel[ k->size[0]*(hsize_v + u) +  hsize_h + t  ]*( image[(i + u)*xdim + j + t] );
+					}
+				}
+				
+				accum1 += accum2;
+
+				if (normflagx ) {
+					normc=ker_norm[k->size[0]*(hsize_v + offs_u + offs_d) +  hsize_h + offs_l + offs_r];
+					accum1 = accum1*normc;
+				}
+				linebuf[line_idx + j] = (uint8_t)min(input_img->maxval,accum1);
+			}
+		}
+		
+		size_t j = (ydim - buffer_lines)%buffer_lines ;
+
+		for (size_t i = ydim - buffer_lines; i<ydim; ++i) {
+			memcpy( &image[i*xdim] , (&linebuf[xdim*j]), xdim*sizeof(int8_t) );	
+			j = (j + 1)%buffer_lines;
+		}
+		free(linebuf);
+	}
+
 }
+
+
+
 
