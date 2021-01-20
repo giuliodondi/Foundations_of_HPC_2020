@@ -42,6 +42,8 @@ omp: $(COMMON_OBJ) $(OMP_OBJ)
 mpi: $(COMMON_OBJ) $(MPI_OBJ)
 	$(MPI_COMPILER) $^ -o $(MPI_EXE_NAME) $(FLAGS) -lm
 	
+rwtest: $(COMMON_OBJ)  src/readwrite_test.c
+	$(COMPILER) $^ -o rwtest.x  $(INCLUDE) $(FLAGS) $(CFLAGS) -lm
 	
 check: $(CHK_OBJ)
 	$(COMPILER) $^ -o check_pgm.x $(INCLUDE) $(FLAGS) -lm

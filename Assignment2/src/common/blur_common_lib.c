@@ -9,7 +9,7 @@
 
 //prints argument description
 void print_usage(char **argv) {
-	printf("Usage: %s -input input_img.pgm -kernel_type type -kernel-size size1 [size2] \n",argv[0]);
+	printf("Usage: %s -input input_img.pgm -kernel-type type -kernel-size size1 [size2] \n",argv[0]);
 	printf("			[-output output_img.pgm] [-kernel-weight weight]\n");
 }
 
@@ -97,8 +97,8 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 		return -1;
 	}
 	
-	//switch doesn't work with strings unfortunately
 	for( int arg = 1; arg < argc; arg+=2 )  {
+		printf("%s\n",argv[arg]);
 		if (strcmp(argv[arg], "-input")==0 ) {
 			strcpy(infile,argv[arg+1]);
 		}
@@ -121,6 +121,8 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 		}
 		else if (strcmp(argv[arg], "-kernel-size")==0 ) {
 			tmp=0;
+			
+			
 			//get the first kernel dimension
 			if (is_number(argv[arg + 1]) ) {
 				tmp = atoi(argv[arg+1]);
@@ -129,6 +131,7 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 				printf("Kernel size is not a number.\n");	
 				return -1;
 			}
+						
 			
 			//check kernel size is odd	
 			if ( (tmp%2)==0 || (tmp<3)) {
@@ -137,8 +140,10 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 			}
 			kernel_size[0]=tmp;
 			
+			
 			//see if the next argument is a second integer, the second kernel dimension
-			if (is_number(argv[arg + 2]) ) {
+			if ( (argv[arg + 2]!=0) && (is_number(argv[arg + 2]) ) ) {
+				
 				tmp = atoi(argv[arg+2]);
 				if ( (tmp%2)==0 || (tmp<3)) {
 					printf("Error: Kernel size(s) must be an odd integer 3 or greater.\n");
