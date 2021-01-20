@@ -39,6 +39,16 @@ int main( int argc, char **argv )
 		return -1;
 	}
 	
+	#if defined(PRINT_KER) && defined(INFO)
+	printf("ker size : %d x %d \n", kernel.size[0],kernel.size[1] );
+	printf("ker hsize : %d x %d \n", kernel.halfsize[0],kernel.halfsize[1] );
+	double norm=0;
+	for (size_t i=0; i<kernel.size[0]*kernel.size[1]; ++i) {
+		norm += kernel.ker[i];
+		printf("ker %ld %f %f\n",i,kernel.ker[i], kernel.kernorm[i]);	
+	}
+	printf ("ker norm %f\n.",norm);
+	#endif
 	
 	#ifdef TIME
 	kernel_time = clock() - kernel_time;

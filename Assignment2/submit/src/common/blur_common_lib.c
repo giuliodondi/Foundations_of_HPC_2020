@@ -109,6 +109,7 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 		else if (strcmp(argv[arg], "-kernel-file")==0 ) {
 			kernel_file_flag = 1;
 			strcpy(kernel_fname,argv[arg+1]);
+			printf("%s\n",kernel_fname);
 		}
 		else if (strcmp(argv[arg], "-kernel-type")==0 ) {
 			if (is_number(argv[arg + 1]) ) {
@@ -189,16 +190,15 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 		return -1;
 	} 
 	
-	if (! out_file_flag) {
-		//generate default output name
-		gen_out_name( infile, outfile, kernel_type, kernel_size , kernel_weight );
-	}
 	
-	if (kernel_file_flag) {
+	if (kernel_file_flag==1) {	
 		if (kernel_init_from_file( k, kernel_fname) == -1 ) {
 			printf("Error during kernel initialisation.\n");	
 			return -1;
 		}
+		kernel_type=-1;
+		kernel_size[0] = k->size[0];
+		kernel_size[1] = k->size[1];
 		
 	} else {
 		
@@ -219,6 +219,12 @@ int8_t read_params_initialise_kernel( int argc, char **argv , char* infile, char
 			return -1;
 		}
 	}
+	
+	if (! out_file_flag) {
+		//generate default output name
+		gen_out_name( infile, outfile, kernel_type, kernel_size , kernel_weight );
+	}
+	
 	return 0;
 	
 }
