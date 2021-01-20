@@ -404,7 +404,7 @@ void pgm_blur_halo_unrolx4(  pgm* input_img , const kernel_t* k,  const int* hal
 }
 
 
-//this function implements x4 unrolling
+//this function implements x8 unrolling
 //a single loop takes care of odd and even kernel sizes
 void pgm_blur_halo_unrolx8(  pgm* input_img , const kernel_t* k,  const int* halos) {
 	
@@ -574,12 +574,5 @@ void pgm_blur_halo_unrolx8(  pgm* input_img , const kernel_t* k,  const int* hal
 	}
 }
 
-//wrapper to switch between the unrolled versions for both omp and mpi
-void  blur_halo_func_manager( pgm* input_img , const kernel_t* k, const int* halos) {
-	
-	//pgm_blur_halo_unrolx2(input_img,k,halos);
-	pgm_blur_halo_unrolx4(input_img,k,halos);
-	//pgm_blur_halo_unrolx8(input_img,k,halos);
-	
-}
+
 

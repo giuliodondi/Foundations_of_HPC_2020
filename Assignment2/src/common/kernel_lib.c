@@ -77,6 +77,17 @@ int8_t kernel_init_from_file(kernel_t* k, const  char* kernel_fname ) {
 	
 	// read the kernel sizes
 	a = fscanf(kernel_file, "%d%*c %d%*c", &kernel_size[0], &kernel_size[1] );
+	
+	//check kernel dimensions
+	if ( (kernel_size[0]%2)==0 || (kernel_size[0]<3) || (kernel_size[1]%2)==0 || (kernel_size[1]<3) ) {
+		printf("Invalid kernel dimensions specified.\n");
+		printf("Kernel size(s) must be an odd integer 3 or greater.\n");
+		free( line );
+		fclose(kernel_file);
+	  	return -1;
+		
+	}
+	
 	alloc_kernel( k , kernel_size);
 	
 	//read line by line for the kernel values separated either by comma or space
@@ -92,6 +103,7 @@ int8_t kernel_init_from_file(kernel_t* k, const  char* kernel_fname ) {
 	}
 	
 	fclose(kernel_file);
+	free( line );
 	
 	normalise_kernel(k);
 	kernel_normalisations(k);

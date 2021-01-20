@@ -39,12 +39,7 @@ int main( int argc, char **argv )
 		return -1;
 	}
 	
-	
-	#ifdef TIME
-	kernel_time = clock() - kernel_time;
-	#endif
-	
-	/*
+	#if defined(PRINT_KER) && defined(INFO)
 	printf("ker size : %d x %d \n", kernel.size[0],kernel.size[1] );
 	printf("ker hsize : %d x %d \n", kernel.halfsize[0],kernel.halfsize[1] );
 	double norm=0;
@@ -53,8 +48,12 @@ int main( int argc, char **argv )
 		printf("ker %ld %f %f\n",i,kernel.ker[i], kernel.kernorm[i]);	
 	}
 	printf ("ker norm %f\n.",norm);
-	return 0;
-	*/
+	#endif
+	
+	#ifdef TIME
+	kernel_time = clock() - kernel_time;
+	#endif
+
 	
 	#ifdef TIME
 	header_time = clock();
@@ -107,12 +106,23 @@ int main( int argc, char **argv )
 	#ifdef TIME
 	blur_t = clock();
 	#endif
-	//pgm_blur_copy( &image, &kernel );
-	//pgm_blur_linebuf( &image, &kernel );
 	
-	//blur_func_manager( &image, &kernel );
+	#if defined BL_COPY
+		pgm_blur_copy( &image, &kernel );
+	#elif defined BL_LINEBUF
+		pgm_blur_linebuf( &image, &kernel );
+	#elif defined BL_UNROL2
+		pgm_blur_linebuf_unrolx2( &image, &kernel );
+	#elif defined BL_UNROL4
+		pgm_blur_linebuf_unrolx4( &image, &kernel );
+	#elif defined BL_UNROL8
+		pgm_blur_linebuf_unrolx8( &image, &kernel );
+	#else 
+		//default option
+		pgm_blur_linebuf_unrolx4( &image, &kernel );
+	#endif
 	
-	pgm_blur_linebuf_unrolx8( &image, &kernel );
+	
 	
 	#ifdef TIME
 	blur_t = clock() - blur_t;

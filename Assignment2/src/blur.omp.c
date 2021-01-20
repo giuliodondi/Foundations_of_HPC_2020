@@ -47,6 +47,16 @@ int main( int argc, char **argv )
 		return -1;
 	}
 	
+	#if defined(PRINT_KER) && defined(INFO)
+	printf("ker size : %d x %d \n", kernel.size[0],kernel.size[1] );
+	printf("ker hsize : %d x %d \n", kernel.halfsize[0],kernel.halfsize[1] );
+	double norm=0;
+	for (size_t i=0; i<kernel.size[0]*kernel.size[1]; ++i) {
+		norm += kernel.ker[i];
+		printf("ker %ld %f %f\n",i,kernel.ker[i], kernel.kernorm[i]);	
+	}
+	printf ("ker norm %f\n.",norm);
+	#endif
 	
 	#ifdef TIME
 	header_time = omp_get_wtime();
@@ -217,7 +227,17 @@ int main( int argc, char **argv )
 		#endif
 		
 		//do the blurring
-		blur_halo_func_manager( &local_image, &local_kernel , cell_halo.halos);
+		#if defined BL_UNROL2
+			pgm_blur_halo_unrolx2( &local_image, &kernel, cell_halo.halos );
+		#elif defined BL_UNROL4
+			pgm_blur_halo_unrolx4( &local_image, &kernel, cell_halo.halos );
+		#elif defined BL_UNROL8
+			pgm_blur_halo_unrolx8( &local_image, &kernel, cell_halo.halos );
+		#else 
+			//default option
+			pgm_blur_halo_unrolx4( &local_image, &kernel, cell_halo.halos );
+		#endif
+
 		
 		#ifdef INFO
 			printf("Process %d has finished blurring\n",proc_id);
