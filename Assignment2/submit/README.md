@@ -13,6 +13,7 @@ Several compilation flags may be supplied to the make command to customise the p
 
 - **CFLAGS= '-DTIME'** will enable the timing functionality, times for sections of the code will be measured and printed to terminal at the end
 - **CFLAGS= '-DINFO'** will toggle debug information on the status of the program, in the parallelised code this will also output information on the grid arrangements of processes/threads and the size of the image subdivisions
+- **CFLAGS= '-DPRINT_KER'** will output kernel debug information to terminal. Requires the **INFO** flag to also be supplied
 
 Flags may be supplied to select the blurring function to be used:
 
@@ -29,4 +30,11 @@ if no flag is supplied, x4 unrolling is selected by default.
 The standard parameters are:
 
 **exe_name -input input_image .pgm -kernel-type type -kernel-size size_w [ size_h ]**
-      **\[ -output output_image.pgm ]  \[-kernel-weight weight ] \[ -kernel-file filename ]**
+      **\[-kernel-file ker_file.txt]  \[ -output output_image.pgm ]  \[-kernel-weight weight ]**
+
+where the mandatory parameters are -input, -kernel-type and -kernel-size with at least one number specified. The kernel type and size may be omitted only if -kernel-file is supplied.
+The file must be .txt and  formatted as:
+
+size_x sixe_y
+kernel--matrix--elements--comma--or--space
+--separated--and--arranged--by--rows
