@@ -18,9 +18,9 @@ Flags may be supplied to select the blurring function to be used:
 
 - **CFLAGS= '-DBL_COPY'** will duplicate the image buffer to store the blurred pixels during the operation (serial only)
 - **CFLAGS= '-DBL_LINEBUF'** will use a smaller buffer option to reduce memory impact (serial only)
-- **CFLAGS= 'DBL_UNROL2'** will apply x2 unrolling to the convolution loops
-- **CFLAGS= 'DBL_UNROL4'** will apply x4 unrolling to the convolution loops
-- **CFLAGS= 'DBL_UNROL8'** will apply x8 unrolling to the convolution loops
+- **CFLAGS= '-DBL_UNROL2'** will apply x2 unrolling to the convolution loops
+- **CFLAGS= '-DBL_UNROL4'** will apply x4 unrolling to the convolution loops
+- **CFLAGS= '-DBL_UNROL8'** will apply x8 unrolling to the convolution loops
 
 if no flag is supplied, x4 unrolling is selected by default.
 
@@ -28,5 +28,5 @@ if no flag is supplied, x4 unrolling is selected by default.
 
 The standard parameters are:
 
-**exe_name -input input_image .pgm -kernel-type type -kernel-size size_w [ size_h ] **
-**            \[ -output output_image.pgm ]  \[-kernel-weight weight ]   **
+**exe_name -input input_image .pgm -kernel-type type -kernel-size size_w [ size_h ]**
+      **\[ -output output_image.pgm ]  \[-kernel-weight weight ] \[ -kernel-file filename ]**
