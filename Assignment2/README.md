@@ -36,6 +36,7 @@ where the mandatory parameters are -input, -kernel-type and -kernel-size with at
 The file must be .txt and  formatted as:
 
 size_x sixe_y
+
 kernel--matrix--elements--comma--or--space
 --separated--and--arranged--by--rows
 
