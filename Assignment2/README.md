@@ -35,9 +35,8 @@ The standard parameters are:
 where the mandatory parameters are -input, -kernel-type and -kernel-size with at least one number specified. The kernel type and size may be omitted only if -kernel-file is supplied.
 The file must be .txt and  formatted as:
 
-size_x sixe_y
-
-kernel--matrix--elements--comma--or--space
+size_x sixe_y\
+kernel--matrix--elements--comma--or--space\
 --separated--and--arranged--by--rows
 
 
